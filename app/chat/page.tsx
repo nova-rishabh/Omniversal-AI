@@ -102,15 +102,14 @@ export default function ChatPage() {
 
       <div style={{ display: 'flex', height: '100vh' }}>
         <aside style={{
-          width: 275,
-          background: 'var(--color-surface-container-low)',
+          width: 264,
+          background: '#0a0a0a',
           height: '100%',
           padding: '2rem 1.5rem',
           flexShrink: 0,
           display: 'flex', flexDirection: 'column', gap: '2rem',
-          position: 'relative',
         }}>
-          <div style={{
+<div style={{
             position: 'absolute',
             right: 0,
             top: '5%',
@@ -121,13 +120,15 @@ export default function ChatPage() {
           <div style={{ marginLeft: '0.5rem', display: 'flex' }}>
             <OmniWordmark logoSize={60} />
           </div>
-          <h2 style={{ fontWeight: 700 }}> Hello, User </h2>
+          <h2 style={{ textAlign: 'center', fontWeight: 700 }}> Hello, User </h2>
+          <div style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', marginBottom: '1rem' }} />
 
-          <div>
+<div>
             <div className="label-sm">Recent Chats</div>
           </div>
 
           <div style={{ marginTop: 'auto' }}>
+            <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', marginBottom: '1rem' }} />
             <Link
               href="/"
               className="label-sm"
@@ -158,7 +159,7 @@ export default function ChatPage() {
               <h1 className="text-white font-headline font-extrabold text-7xl tracking-tight mb-3 relative">
                 OMNIVERSAL
               </h1>
-              <p className="font-['Geist_Mono'] text-[11px] text-cyan-400 tracking-[0.4em] uppercase opacity-60">Cognitive Processing Engine · Session 4F2A · OmniV-4.2 Ready</p>
+              <p className="font-mono text-[11px] text-cyan-400 tracking-[0.4em] uppercase opacity-60">Cognitive Processing Engine · Session 4F2A · OmniV-4.2 Ready</p>
             </div>
 
             <form onSubmit={handleSubmit} className="w-full mt-16 relative mx-2">
