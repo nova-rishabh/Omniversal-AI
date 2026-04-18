@@ -1,7 +1,9 @@
 'use client';
 
+
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+
 import Image from 'next/image';
 import Link from 'next/link';
 import {
@@ -142,10 +144,16 @@ export default function ChatPage() {
   const audioRef                      = useRef<HTMLAudioElement | null>(null);
   const [audioDuration, setAudioDur]  = useState('--');
   const [thinkSteps, setThinkSteps]   = useState<ThinkStep[]>([]);
+  const handleInput = (e) => {
+    const el = e.target;
+    el.style.height = "auto";
+    el.style.height = Math.min(el.scrollHeight, 160) + "px"; // max height
+  };
 
   const neuralLoad = useLiveMetric(73, 5);
   const tokenEff   = useLiveMetric(91, 3);
   const latency    = useLiveMetric(18, 4);
+  const textareaRef = useRef(null);
 
   useEffect(() => {
     if (!isLoading) { if (!roastData) setThinkSteps([]); return; }
@@ -204,93 +212,33 @@ export default function ChatPage() {
         onTimeUpdate={() => { if (audioRef.current) setAudioProg((audioRef.current.currentTime / audioRef.current.duration) * 100); }}
       />
 
-      <header style={{
-        background: 'var(--color-surface-container-low)',
-        padding: '0 2rem', height: 64,
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      }}>
-        <OmniWordmark logoSize={38} />
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 'var(--text-label-sm)', color: 'var(--color-primary)' }}>
-            <Activity size={12} />
-            <span style={{ letterSpacing: '0.06em', textTransform: 'uppercase' }}>System Online</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 'var(--text-label-sm)', color: 'var(--color-on-surface-variant)' }}>
-            <span style={{
-              width: 6, height: 6, borderRadius: '50%',
-              background: 'var(--color-secondary)', display: 'inline-block',
-              boxShadow: '0 0 6px var(--color-secondary)',
-              animation: 'pulse 2s ease-in-out infinite',
-            }} />
-            <span style={{ letterSpacing: '0.06em', textTransform: 'uppercase' }}>Edge Network</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 'var(--text-label-sm)', color: 'var(--color-primary-dim)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-            <Waves size={11} />
-            <span style={{ fontVariantNumeric: 'tabular-nums' }}>
-              {prompt.split(/\s+/).filter(Boolean).length} tokens
-            </span>
-          </div>
-        </div>
-      </header>
-
-      <div style={{ display: 'flex' }}>
+      <div style={{ display: 'flex', height: '100vh' }}>
         <aside style={{
           width: 264,
-          background: 'var(--color-surface-container-low)',
-          minHeight: 'calc(100vh - 64px)',
+          background: '#0a0a0a',
+          height: '100%',
           padding: '2rem 1.5rem',
           flexShrink: 0,
           display: 'flex', flexDirection: 'column', gap: '2rem',
         }}>
+         <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <OmniWordmark logoSize={48} />
+          </div>
+          <h2 style={{ textAlign: 'center', fontWeight: 700 }}> Hello, User </h2>
+          <div style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', marginBottom: '1rem' }} />
 
           <div>
-            <div className="label-sm">Neural Metrics</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '1rem' }}>
-              <MetricCard label="NEURAL LOAD"  value={`${neuralLoad}%`} bar={neuralLoad}              icon={<Cpu   size={14} color="var(--color-primary)" />} />
-              <MetricCard label="TOKEN EFF."   value={`${tokenEff}%`}  bar={tokenEff}                icon={<Zap   size={14} color="var(--color-secondary)" />} />
-              <MetricCard label="EDGE LATENCY" value={`${latency}ms`}  bar={Math.min(latency * 3, 100)} icon={<Clock size={14} color="var(--color-on-secondary-container)" />} />
-            </div>
+            <div className="label-sm">Recent Chats</div>
+            {
+              // Recent chat section
+            }
+            
           </div>
 
-          <div>
-            <div className="label-sm">Model</div>
-            <div style={{
-              marginTop: '1rem',
-              background: 'var(--color-surface-container-high)',
-              borderRadius: 'var(--radius-DEFAULT)',
-              padding: '1rem',
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: '0.75rem' }}>
-                <div style={{
-                  width: 34, height: 34,
-                  background: 'var(--color-surface-highest)',
-                  borderRadius: 'var(--radius-DEFAULT)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>
-                  <Network size={16} color="var(--color-primary)" />
-                </div>
-                <div>
-                  <div style={{ fontSize: 'var(--text-body-md)', fontWeight: 600, color: 'var(--color-on-surface)' }}>OmniV-4.2</div>
-                  <div className="label-sm" style={{ marginTop: 2 }}>70B params · Active</div>
-                </div>
-                <div style={{ marginLeft: 'auto', width: 6, height: 6, borderRadius: '50%', background: 'var(--color-secondary)', boxShadow: '0 0 8px var(--color-secondary)' }} />
-              </div>
-              {[['Context', 92], ['Recall', 87], ['Align', 99]].map(([label, val]) => (
-                <div key={label as string} style={{ marginBottom: '0.4rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
-                    <span className="label-sm">{label as string}</span>
-                    <span style={{ fontSize: 'var(--text-label-sm)', color: 'var(--color-primary)' }}>{val}%</span>
-                  </div>
-                  <div style={{ height: 2, background: 'var(--color-surface-highest)', borderRadius: 1 }}>
-                    <div style={{ height: '100%', width: `${val}%`, background: 'linear-gradient(90deg, var(--color-primary), var(--color-primary-container))', borderRadius: 1 }} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
 
-          <div style={{ marginTop: 'auto' }}>
+<div style={{ marginTop: 'auto' }}>
+          <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', marginBottom: '1rem' }} />
             <Link
               href="/"
               className="label-sm"
@@ -302,148 +250,130 @@ export default function ChatPage() {
                 textDecoration: 'none',
               }}
             >
-              ← Return to Dashboard
-            </Link>
+            ← Return to Dashboard
+          </Link>
           </div>
         </aside>
 
-        <main style={{ flex: 1, padding: '3rem 3.5rem' }}>
+        {/* Main Content Area */}
+        <main className="w-full min-h-screen bg-[#131313] flex flex-col items-center justify-center relative px-8 py-12">
+  {/* Subtle Ambient Lighting */}
+  <div className="absolute inset-0 pointer-events-none overflow-hidden">
+    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-cyan-900/5 rounded-full blur-[120px]"></div>
+  </div>
 
-          <div style={{ marginBottom: '2.5rem' }}>
-            <h1 className="display-lg">Neural Query</h1>
-            <p className="label-sm" style={{ marginTop: '0.5rem' }}>
-              Cognitive Processing Engine · Session 4F2A · OmniV-4.2 Ready
-            </p>
-          </div>
+<motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }} className="w-full max-w-[800px] flex flex-col gap-10 relative z-10">
+      {/* Centered Logo with Golden Glow */}
+      <div className="mb-40 flex flex-col items-center relative">
+      {/* Golden Glow Background */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <div className="w-[500px] h-[300px] bg-amber-400/10 rounded-full blur-[80px] -z-10"></div>
+      </div>
+      
+      <h1 className="text-white font-headline font-extrabold text-7xl tracking-tight mb-3 relative">
+        OMNIVERSAL
+      </h1>
+      <p className="font-['Geist_Mono'] text-[11px] text-cyan-400 tracking-[0.4em] uppercase opacity-60">Cognitive Processing Engine · Session 4F2A · OmniV-4.2 Ready</p>
+    </div>
 
-          <form onSubmit={handleSubmit}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-              <span className="label-sm">Input Prompt</span>
-              <span className="label-sm" style={{ color: 'var(--color-outline-variant)', fontVariantNumeric: 'tabular-nums' }}>
-                {prompt.length} / 4096
+    {/* Form Section */}
+<form onSubmit={handleSubmit} className="w-full mt-16 relative">
+      {/* Input + Button */}
+      <div className="flex items-end gap-3">
+        <div className="flex-1 relative">
+          <textarea
+            ref={textareaRef}
+            value={prompt}
+            onChange={(e) => {
+              setPrompt(e.target.value);
+              handleInput(e);
+              e.target.style.height = 'auto';
+              e.target.style.height = Math.min(e.target.scrollHeight, 200) + 'px';
+            }}
+            rows={1}
+            className="w-full bg-[#201f1f] rounded-3xl px-6 py-3 pr-16 text-on-surface placeholder:text-neutral-600 font-headline text-sm resize-none overflow-hidden transition-colors focus:outline-none focus:bg-[#2a2929]"
+            placeholder="Enter your query..."
+            style={{
+              minHeight: '44px',
+              maxHeight: '200px',
+              overflowY: 'auto',
+              paddingTop: '12px',
+              paddingBottom: '12px'
+            }}
+          />
+          <span className="absolute bottom-2 right-4 text-[8px] text-neutral-600 tabular-nums">
+            {prompt.length}/4096
+          </span>
+        </div>
+        <button
+          type="submit"
+          disabled={!prompt.trim() || isLoading}
+          className="h-[45px] w-[48px] flex items-center justify-center bg-cyan-400 text-[#001f24] rounded-2xl disabled:opacity-50 disabled:cursor-not-allowed hover:bg-cyan-300 active:scale-95 transition-all"
+          aria-label="Send message"
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+          </svg>
+        </button>
+      </div>
+
+      {/* Status Indicator (centered + smooth) */}
+      <div className="mt-6 flex justify-center">
+        <div
+          className={`px-4 py-2 rounded-full font-['Geist_Mono'] text-[10px] font-bold tracking-widest uppercase flex items-center gap-2 transition-all duration-300 ${
+            isLoading
+              ? 'bg-cyan-400/20 text-cyan-400'
+              : roastData
+              ? 'bg-green-400/20 text-green-400'
+              : 'bg-white/5 text-neutral-500'
+          }`}
+        >
+        </div>
+      </div>
+    </form>
+
+    {/* Error Message */}
+    <AnimatePresence>
+      {error && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0 }}
+          className="mt-8 p-4 bg-red-900/20 border border-red-500/30 rounded-lg flex items-center gap-3 text-red-300"
+        >
+          <span className="material-symbols-outlined text-sm">error</span>
+          {error}
+        </motion.div>
+      )}
+    </AnimatePresence>
+
+    {/* Response */}
+    <AnimatePresence>
+      {roastData && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mt-8"
+        >
+          <div className="bg-[#201f1f] border border-white/10 rounded-lg p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <span className="material-symbols-outlined text-sm text-green-400">check_circle</span>
+              <span className="font-['Geist_Mono'] text-[11px] uppercase tracking-wider text-neutral-300">Verdict</span>
+              <span className="ml-auto font-['Geist_Mono'] text-[10px] text-neutral-600 flex items-center gap-2">
+                <span className="material-symbols-outlined text-xs">call_split</span>
+                OmniV-4.2
               </span>
             </div>
-
-            <LabTextarea value={prompt} onChange={setPrompt} />
-
-            <div style={{ marginTop: '1.5rem', display: 'flex', gap: '1rem', alignItems: 'center' }}>
-              <PrimaryButton type="submit" disabled={!prompt.trim() || isLoading}>
-                {isLoading
-                  ? <><Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> Processing…</>
-                  : <><Zap size={15} /> Execute Query</>}
-              </PrimaryButton>
-
-              <SecondaryButton type="button" onClick={() => { setPrompt(''); setRoastData(null); setError(null); setThinkSteps([]); }}>
-                Clear
-              </SecondaryButton>
-
-              <div style={{
-                marginLeft: 'auto',
-                background: isLoading   ? 'var(--color-primary-container)'
-                           : roastData  ? 'var(--color-secondary-container)'
-                           : 'var(--color-surface-container-high)',
-                color: isLoading        ? 'var(--color-primary)'
-                       : roastData       ? 'var(--color-on-secondary-container)'
-                       : 'var(--color-on-surface-variant)',
-                borderRadius: 'var(--radius-full)',
-                padding: '4px 14px',
-                fontSize: 'var(--text-label-sm)', fontWeight: 600,
-                letterSpacing: '0.08em', textTransform: 'uppercase',
-                display: 'flex', alignItems: 'center', gap: 6,
-                transition: 'background 300ms ease-out, color 300ms ease-out',
-              }}>
-                {isLoading && <Loader2 size={10} style={{ animation: 'spin 1s linear infinite' }} />}
-                {isLoading ? 'Processing' : roastData ? 'Complete' : 'Idle'}
-              </div>
+            <div className="font-['Geist_Mono'] text-[14px] text-on-surface leading-relaxed">
+              <StreamingText text={roastData.output} />
             </div>
-          </form>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  </motion.div>
+</main>
 
-          <AnimatePresence>
-            {isLoading && thinkSteps.length > 0 && <ThinkingPanel steps={thinkSteps} />}
-          </AnimatePresence>
-
-          <AnimatePresence>
-            {error && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                style={{
-                  marginTop: '1.5rem', padding: '1rem 1.25rem',
-                  background: 'var(--color-error-container)',
-                  borderRadius: 'var(--radius-DEFAULT)',
-                  display: 'flex', alignItems: 'center', gap: 10,
-                  fontSize: 'var(--text-body-md)', color: 'var(--color-error)',
-                }}
-              >
-                <XCircle size={15} />{error}
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          <AnimatePresence>
-            {roastData && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-                style={{ marginTop: '2rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}
-              >
-                {audioUrl && (
-                  <div style={{
-                    background: 'var(--color-surface-container)',
-                    borderRadius: 'var(--radius-lg)',
-                    padding: '1.25rem 1.5rem',
-                    display: 'flex', alignItems: 'center', gap: '1.25rem',
-                  }}>
-                    <button
-                      onClick={togglePlayback}
-                      style={{
-                        width: 46, height: 46,
-                        borderRadius: 'var(--radius-DEFAULT)',
-                        background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-container))',
-                        border: 'none', cursor: 'pointer',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        flexShrink: 0, transition: 'opacity 200ms',
-                      }}
-                      onMouseEnter={e => (e.currentTarget.style.opacity = '0.8')}
-                      onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
-                    >
-                      {isPlaying
-                        ? <Pause size={17} color="var(--color-on-primary)" />
-                        : <Play  size={17} color="var(--color-on-primary)" style={{ marginLeft: 2 }} />}
-                    </button>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                        <span className="label-sm">Neural Audio Response</span>
-                        <span className="label-sm" style={{ fontVariantNumeric: 'tabular-nums' }}>{audioDuration}s</span>
-                      </div>
-                      <div style={{ height: 3, background: 'var(--color-surface-highest)', borderRadius: 2, overflow: 'hidden' }}>
-                        <motion.div style={{
-                          height: '100%',
-                          background: 'linear-gradient(90deg, var(--color-primary), var(--color-primary-dim))',
-                          width: `${audioProgress}%`,
-                        }} />
-                      </div>
-                    </div>
-                    <Volume2 size={15} color="var(--color-on-surface-variant)" />
-                  </div>
-                )}
-
-                <div style={{
-                  background: 'var(--color-surface-container)',
-                  borderRadius: 'var(--radius-lg)',
-                  padding: '1.5rem',
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: '1rem' }}>
-                    <CheckCircle2 size={14} color="var(--color-secondary)" />
-                    <span className="label-sm">Verdict</span>
-                    <span style={{ marginLeft: 'auto', fontSize: 'var(--text-label-sm)', color: 'var(--color-outline-variant)', display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <GitBranch size={10} /> OmniV-4.2
-                    </span>
-                  </div>
-                  <StreamingText text={roastData.output} />
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </main>
       </div>
 
       <style>{`

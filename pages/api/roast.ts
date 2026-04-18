@@ -45,7 +45,7 @@ export default async function handler(
     console.log('Creating full prompt...');
     const fullPrompt = `${SYSTEM_INSTRUCTION}\n\nUser prompt: ${prompt}`;
 
-    console.log('Calling Gemini API (gemini-2.5-flash)...');
+    console.log('Calling Gemini API (gemini-1.5-flash)...');
     try {
       const result = await model.generateContent({
         contents: [{ role: 'user', parts: [{ text: fullPrompt }] }],
