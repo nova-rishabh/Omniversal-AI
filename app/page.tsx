@@ -122,7 +122,7 @@ function TypewriterSuggestion({ onSelect }: { onSelect: (s: string) => void }) {
   const [idx, setIdx]        = useState(0);
   const [displayed, setDisp] = useState('');
   const [deleting, setDel]   = useState(false);
-  const timer = useRef<ReturnType<typeof setTimeout>>();
+  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => {
     const target = SUGGESTIONS[idx];
@@ -460,7 +460,7 @@ export default function Home() {
         </aside>
 
         {/* ── Main ── */}
-        <main style={{ flex: 1, padding: '3rem 3.5rem', maxWidth: 840 }}>
+        <main style={{ flex: 1, padding: '3rem 3.5rem' }}>
 
           <div style={{ marginBottom: '2.5rem' }}>
             <h1 className="display-lg">Neural Query</h1>
