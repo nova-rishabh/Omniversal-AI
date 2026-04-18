@@ -227,13 +227,6 @@ function StreamingText({ text }: { text: string }) {
   return (
     <p className="body-lg" style={{ margin: 0, whiteSpace: 'pre-wrap' }}>
       {visible}
-      {visible.length < text.length && (
-        <span style={{
-          display: 'inline-block', width: 2, height: '1em',
-          background: 'var(--color-primary)', marginLeft: 2,
-          verticalAlign: 'text-bottom', animation: 'blink 0.7s step-end infinite',
-        }} />
-      )}
     </p>
   );
 }
@@ -413,31 +406,6 @@ export default function Home() {
                   </div>
                 </div>
               ))}
-            </div>
-          </div>
-
-          <div>
-            <SectionLabel>Active Persona</SectionLabel>
-            <div style={{
-              marginTop: '1rem',
-              background: 'var(--color-surface-container-high)',
-              borderRadius: 'var(--radius-DEFAULT)',
-              padding: '1rem',
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div style={{
-                  width: 36, height: 36,
-                  background: 'var(--color-surface-highest)',
-                  borderRadius: 'var(--radius-DEFAULT)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '1.1rem',
-                }}>🎭</div>
-                <div>
-                  <div style={{ fontSize: 'var(--text-body-md)', fontWeight: 600, color: 'var(--color-on-surface)' }}>Shakespeare</div>
-                  <div className="label-sm" style={{ marginTop: 2 }}>v1.0.0 · Active</div>
-                </div>
-                <div style={{ marginLeft: 'auto', width: 6, height: 6, borderRadius: '50%', background: 'var(--color-secondary)', boxShadow: '0 0 8px var(--color-secondary)' }} />
-              </div>
             </div>
           </div>
 
