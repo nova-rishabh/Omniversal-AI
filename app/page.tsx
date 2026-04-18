@@ -516,7 +516,7 @@ export default function Home() {
           </form>
 
           <AnimatePresence>
-            {thinkSteps.length > 0 && <ThinkingPanel steps={thinkSteps} />}
+            {isLoading && thinkSteps.length > 0 && <ThinkingPanel steps={thinkSteps} />}
           </AnimatePresence>
 
           <AnimatePresence>
