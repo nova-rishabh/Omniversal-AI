@@ -215,18 +215,26 @@ export default function ChatPage() {
 
       <div style={{ display: 'flex', height: '100vh' }}>
         <aside style={{
-          width: 264,
-          background: '#0a0a0a',
+          width: 275,
+          background: 'var(--color-surface-container-low)',
           height: '100%',
           padding: '2rem 1.5rem',
           flexShrink: 0,
           display: 'flex', flexDirection: 'column', gap: '2rem',
+          position: 'relative',
         }}>
-         <div style={{ display: 'flex', justifyContent: 'center' }}>
-            <OmniWordmark logoSize={48} />
+          <div style={{
+            position: 'absolute',
+            right: 0,
+            top: '5%',
+            bottom: '5%',
+            width: '1px',
+            background: 'rgba(255,255,255,0.08)',
+          }} />
+         <div style={{ marginLeft: '0.5rem', display: 'flex' }}>
+            <OmniWordmark logoSize={60} />
           </div>
-          <h2 style={{ textAlign: 'center', fontWeight: 700 }}> Hello, User </h2>
-          <div style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', marginBottom: '1rem' }} />
+          <h2 style={{ fontWeight: 700 }}> Hello, User </h2>
 
           <div>
             <div className="label-sm">Recent Chats</div>
@@ -237,8 +245,8 @@ export default function ChatPage() {
           </div>
 
 
-<div style={{ marginTop: 'auto' }}>
-          <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', marginBottom: '1rem' }} />
+        <div style={{ marginTop: 'auto' }}>
+          <div /> 
             <Link
               href="/"
               className="label-sm"
@@ -277,7 +285,7 @@ export default function ChatPage() {
     </div>
 
     {/* Form Section */}
-<form onSubmit={handleSubmit} className="w-full mt-16 relative">
+<form onSubmit={handleSubmit} className="w-full mt-16 relative mx-2">
       {/* Input + Button */}
       <div className="flex items-end gap-3">
         <div className="flex-1 relative">
@@ -298,6 +306,8 @@ export default function ChatPage() {
               maxHeight: '200px',
               overflowY: 'auto',
               paddingTop: '12px',
+              paddingLeft: '20px',
+              paddingRight: '20px',
               paddingBottom: '12px'
             }}
           />
@@ -355,16 +365,16 @@ export default function ChatPage() {
           animate={{ opacity: 1, y: 0 }}
           className="mt-8"
         >
-          <div className="bg-[#201f1f] border border-white/10 rounded-lg p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <span className="material-symbols-outlined text-sm text-green-400">check_circle</span>
-              <span className="font-['Geist_Mono'] text-[11px] uppercase tracking-wider text-neutral-300">Verdict</span>
-              <span className="ml-auto font-['Geist_Mono'] text-[10px] text-neutral-600 flex items-center gap-2">
-                <span className="material-symbols-outlined text-xs">call_split</span>
-                OmniV-4.2
-              </span>
+          <div className="bg-[#201f1f] border border-white/5 rounded-2xl p-6" 
+            style={{
+              padding: '14px'
+            }}>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-[10px] text-cyan-400 font-['Geist_Mono'] uppercase tracking-widest">Response</span>
+              <span className="text-[10px] text-neutral-600">•</span>
+              <span className="text-[10px] text-neutral-600 font-['Geist_Mono']">OmniV-4.2</span>
             </div>
-            <div className="font-['Geist_Mono'] text-[14px] text-on-surface leading-relaxed">
+            <div className="text-sm text-neutral-300 leading-relaxed p-2" style={{ fontFamily: 'var(--font-sans)' }}>
               <StreamingText text={roastData.output} />
             </div>
           </div>
