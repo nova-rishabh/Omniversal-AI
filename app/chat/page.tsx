@@ -7,10 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
 import {
-  Zap, ChevronRight, Play, Pause,
-  Volume2, Activity, Cpu, Clock, CheckCircle2,
-  XCircle, Loader2, Sparkles, Network, GitBranch,
-  TerminalSquare, Waves, Brain,
+  CheckCircle2, Loader2, TerminalSquare,
 } from 'lucide-react';
 
 type RoastData  = { output: string; roast_text: string; audio_available: boolean };
@@ -144,7 +141,7 @@ export default function ChatPage() {
   const audioRef                      = useRef<HTMLAudioElement | null>(null);
   const [audioDuration, setAudioDur]  = useState('--');
   const [thinkSteps, setThinkSteps]   = useState<ThinkStep[]>([]);
-  const handleInput = (e) => {
+  const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const el = e.target;
     el.style.height = "auto";
     el.style.height = Math.min(el.scrollHeight, 160) + "px"; // max height
@@ -185,7 +182,13 @@ export default function ChatPage() {
       setRoastData(data);
       if (data.audio_available) {
         const ar = await fetch('/api/roast-audio', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: data.roast_text }) });
-        if (ar.ok) { const blob = await ar.blob(); setAudioUrl(URL.createObjectURL(blob)); }
+        if (ar.ok) { 
+          const blob = await ar.blob(); 
+          const url = URL.createObjectURL(blob);
+          setAudioUrl(url);
+          const audio = new Audio(url);
+          audio.play().catch(() => {});
+        }
       }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'An error occurred');
