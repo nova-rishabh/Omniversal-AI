@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
 
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
     const model = genAI.getGenerativeModel({
-      model: 'gemini-2.0-flash', // Updated to a more standard model name if 2.5 was a typo, or kept if specifically requested. Sticking to 2.0 flash as it's the current flagship flash.
+      model: 'gemini-2.5-flash', // Updated to a more standard model name if 2.5 was a typo, or kept if specifically requested. Sticking to 2.0 flash as it's the current flagship flash.
     });
 
     const fullPrompt = `${SYSTEM_INSTRUCTION}\n\nUser prompt: ${prompt}`;
