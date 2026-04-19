@@ -9,16 +9,24 @@ export default function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [isLogin, setIsLogin] = useState(false); // Sign up as priority
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (username === 'admin' && password === 'admin') {
+    if (!isLogin) {
+      // Allow seamless mock sign up
       localStorage.setItem('auth', 'true');
       router.push('/onboarding');
     } else {
-      setError('Invalid credentials. Access denied.');
+      if (username === 'admin' && password === 'admin') {
+        localStorage.setItem('auth', 'true');
+        router.push('/onboarding');
+      } else {
+        setError('Invalid credentials. Access denied.');
+      }
     }
   };
+
 
   return (
     <div style={{
@@ -45,13 +53,15 @@ export default function LoginPage() {
         }}
       >
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 600, letterSpacing: '0.05em' }}>OMNIVERSAL PLATFORM</h1>
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 600, letterSpacing: '0.05em' }}>
+            {isLogin ? 'OMNIVERSAL PLATFORM' : 'JOIN OMNIVERSAL'}
+          </h1>
           <p style={{ color: 'var(--color-on-surface-variant)', fontSize: '0.875rem', marginTop: '0.5rem' }}>
-            Authorized personnel only
+            {isLogin ? 'Authorized personnel only' : 'Create your neural access credentials'}
           </p>
         </div>
 
-        <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           <div>
             <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-on-surface-variant)', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
               Username
@@ -114,8 +124,27 @@ export default function LoginPage() {
             onMouseOver={(e) => e.currentTarget.style.opacity = '0.9'}
             onMouseOut={(e) => e.currentTarget.style.opacity = '1'}
           >
-            INITIALIZE SESSION
+            {isLogin ? 'INITIALIZE SESSION' : 'REGISTER CREDENTIALS'}
           </button>
+
+          <div style={{ marginTop: '0.5rem', textAlign: 'center', fontSize: '0.875rem' }}>
+            <span style={{ color: 'var(--color-on-surface-variant)' }}>
+              {isLogin ? "Don't have an account? " : "Already have an account? "}
+            </span>
+            <button
+              type="button"
+              onClick={() => { setIsLogin(!isLogin); setError(''); }}
+              style={{
+                background: 'none', border: 'none', padding: 0,
+                color: 'var(--color-primary)', fontWeight: 600, cursor: 'pointer',
+                textDecoration: 'none'
+              }}
+              onMouseEnter={e => e.currentTarget.style.textDecoration = 'underline'}
+              onMouseLeave={e => e.currentTarget.style.textDecoration = 'none'}
+            >
+              {isLogin ? 'Sign up' : 'Log in'}
+            </button>
+          </div>
         </form>
       </motion.div>
     </div>
