@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useRef, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
@@ -11,8 +11,8 @@ import {
 function OmniLogo({ size = 40 }: { size?: number }) {
   return (
     <Image
-      src="/Omniversal_AI_logo_idea.png"
-      alt="Omniversal AI"
+      src="/logo.jpg"
+      alt="Omniversal AI Logo"
       width={size}
       height={size}
       style={{ objectFit: 'contain', display: 'block' }}

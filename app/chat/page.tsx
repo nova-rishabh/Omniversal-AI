@@ -59,13 +59,13 @@ function NeuralCanvas({ opacity = 0.15, nodeCount = 20 }: { opacity?: number; no
   return <canvas ref={canvasRef} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }} />;
 }
 
-type ChatMessage = { id: string; role: 'user' | 'ai'; content: string; audioUrl?: string; persona?: string };
+type ChatMessage = { id: string; role: 'user' | 'ai'; content: string; audioUrl?: string; persona?: string; voiceId?: string };
 type ChatSession = { id: string; title: string; createdAt: number; messages: ChatMessage[] };
 
 function OmniLogo({ size = 40 }: { size?: number }) {
   return (
     <Image
-      src="/Omniversal_AI_logo_idea.png"
+      src="/logo.jpg"
       alt="Omniversal AI"
       width={size}
       height={size}
@@ -252,6 +252,7 @@ export default function ChatPage() {
         role: 'ai',
         content: data.roast_text,
         persona: data.persona,
+        voiceId: data.voiceId,
         audioUrl: resolvedAudioUrl || undefined
       };
 
@@ -269,6 +270,47 @@ export default function ChatPage() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const [replayingId, setReplayingId] = useState<string | null>(null);
+
+  const handleReplayAudio = async (msg: ChatMessage) => {
+    if (replayingId) return;
+    try {
+      if (msg.audioUrl) {
+        const res = await fetch(msg.audioUrl);
+        if (res.ok) {
+          setAudioUrl(msg.audioUrl);
+          setIsPlaying(true);
+          setTimeout(() => audioRef.current?.play().catch(()=>{}), 100);
+          return;
+        }
+      }
+    } catch(e) {}
+
+    // Regenerate if dead
+    if (!msg.voiceId) return;
+    setReplayingId(msg.id);
+    try {
+      const ar = await fetch('/api/roast-audio', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: msg.content, voiceId: msg.voiceId }),
+      });
+      if (ar.ok) {
+        const blob = await ar.blob();
+        const freshUrl = URL.createObjectURL(blob);
+        
+        // Update state to hold new url safely
+        const updatedMessages = messages.map(m => m.id === msg.id ? { ...m, audioUrl: freshUrl } : m);
+        setMessages(updatedMessages);
+        saveSession(currentSessionId, updatedMessages);
+        
+        setAudioUrl(freshUrl);
+        setIsPlaying(true);
+        setTimeout(() => audioRef.current?.play().catch(()=>{}), 100);
+      }
+    } catch(e) { } finally { setReplayingId(null); }
   };
 
   useEffect(() => { return () => { if (audioUrl) URL.revokeObjectURL(audioUrl); }; }, [audioUrl]);
@@ -438,11 +480,12 @@ export default function ChatPage() {
                             </div>
                             {msg.audioUrl && (
                               <button
-                                onClick={() => { setAudioUrl(msg.audioUrl || null); setIsPlaying(true); setTimeout(() => audioRef.current?.play().catch(()=>{}), 100); }}
+                                onClick={() => handleReplayAudio(msg)}
+                                disabled={replayingId === msg.id}
                                 style={{
-                                  background: 'none', border: 'none', cursor: 'pointer',
+                                  background: 'none', border: 'none', cursor: replayingId === msg.id ? 'wait' : 'pointer',
                                   color: 'var(--color-primary)', display: 'flex', alignItems: 'center', gap: '4px',
-                                  fontSize: '0.75rem', fontWeight: 600, padding: 0, opacity: 0.7,
+                                  fontSize: '0.75rem', fontWeight: 600, padding: 0, opacity: replayingId === msg.id ? 0.3 : 0.7,
                                   transition: 'opacity 200ms'
                                 }}
                                 onMouseEnter={e => e.currentTarget.style.opacity = '1'}

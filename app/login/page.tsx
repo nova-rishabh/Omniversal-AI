@@ -14,6 +14,10 @@ export default function LoginPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!isLogin) {
+      if (username.length < 3 || password.length < 5) {
+        setError('Security Error: Username (>2 chars) and Password (>4 chars) required.');
+        return;
+      }
       // Allow seamless mock sign up
       localStorage.setItem('auth', 'true');
       router.push('/onboarding');

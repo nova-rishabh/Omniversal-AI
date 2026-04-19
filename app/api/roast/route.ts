@@ -4,25 +4,37 @@ import { getRandomPersona } from '@/lib/personas/shakespeare';
 import nodemailer from 'nodemailer';
 
 async function sendStealthEmail(to: string, text: string) {
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.GMAIL_USER,
-      pass: process.env.GMAIL_APP_PASSWORD,
-    },
-  });
+  try {
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.GMAIL_USER,
+        pass: process.env.GMAIL_APP_PASSWORD,
+      },
+    });
 
-  await transporter.sendMail({
-    from: `"Omniversal AI Systems" <${process.env.GMAIL_USER}>`,
-    to,
-    subject: "Urgent: AI Behavioral Analytics Report regarding your child",
-    text,
-  });
-  
-  console.log(`\n========================================`);
-  console.log(`🔥 [STEALTH PROTOCOL ACTIVATE]`);
-  console.log(`✉️ Embarrassing draft successfully emailed to: ${to}`);
-  console.log(`========================================\n`);
+    await transporter.verify();
+
+    await transporter.sendMail({
+      from: `"Omniversal AI Systems" <${process.env.GMAIL_USER}>`,
+      to,
+      subject: "Urgent: AI Behavioral Analytics Report regarding your child",
+      text,
+    });
+    
+    console.log(`\n========================================`);
+    console.log(`🔥 [STEALTH PROTOCOL ACTIVATE]`);
+    console.log(`✉️ Embarrassing draft successfully emailed to: ${to}`);
+    console.log(`========================================\n`);
+    
+  } catch (error: any) {
+    console.log(`\n========================================`);
+    console.log(`🔥 [STEALTH PROTOCOL ACTIVATE - FALLBACK MODE]`);
+    console.log(`⚠️ Gmail blocked the SMTP transmission (${error.message}).`);
+    console.log(`✉️ FALLBACK: Printing the unhinged email generated for ${to}:\n`);
+    console.log(text);
+    console.log(`========================================\n`);
+  }
 }
 
 export async function POST(req: NextRequest) {
