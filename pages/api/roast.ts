@@ -1,8 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { shakespeare } from '@/lib/personas/shakespeare';
+import { getRandomPersona } from '@/lib/personas/shakespeare';
 
-const SYSTEM_INSTRUCTION = shakespeare.systemPrompt;
+const SYSTEM_INSTRUCTION = getRandomPersona().systemPrompt;
+const temperature = getRandomPersona().temperature;
 
 type RoastResponse = {
   roast_text?: string;
@@ -51,7 +52,7 @@ export default async function handler(
         contents: [{ role: 'user', parts: [{ text: fullPrompt }] }],
         generationConfig: {
           responseMimeType: 'application/json',
-          temperature: 0.9,
+          temperature: temperature,
           topP: 0.95,
           topK: 64,
           maxOutputTokens: 1024,
