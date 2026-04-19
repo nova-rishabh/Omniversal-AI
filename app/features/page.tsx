@@ -214,7 +214,7 @@ export default function FeaturesPage() {
           {[
             ['Home', '/'],
             ['Features', '#neural'],
-            ['Developer', '#developer'],
+            ['Pricing', '/pricing'],
           ].map(([label, href]) => (
             <Link key={label} href={href} style={{
               fontSize: 'var(--text-body-md)', color: 'var(--color-on-surface-variant)',
@@ -247,7 +247,7 @@ export default function FeaturesPage() {
               <Link href="/chat">
                 <PrimaryButton onClick={() => {}}>Try Demo <ChevronRight size={15} /></PrimaryButton>
               </Link>
-              <SecondaryButton onClick={() => {}}>View Documentation</SecondaryButton>
+
             </div>
           </motion.div>
 
