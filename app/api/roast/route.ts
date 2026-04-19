@@ -84,15 +84,37 @@ export async function POST(req: NextRequest) {
     const response = await result.response;
     const text = response.text();
 
-    let parsed;
+    let roastText = "";
+    let parsed: any = null;
+
     try {
+      // Robust JSON extraction from LLM response
       const cleanedText = text.replace(/```json/g, '').replace(/```/g, '').trim();
-      parsed = JSON.parse(cleanedText);
-    } catch {
-      parsed = { roast_text: text.replace(/```json/g, '').replace(/```/g, '').trim() };
+      
+      // Try parsing the whole thing first
+      try {
+        parsed = JSON.parse(cleanedText);
+      } catch (e) {
+        // Find the first { and last } if direct parse fails
+        const firstBrace = cleanedText.indexOf('{');
+        const lastBrace = cleanedText.lastIndexOf('}');
+        if (firstBrace !== -1 && lastBrace !== -1) {
+          const jsonOnly = cleanedText.substring(firstBrace, lastBrace + 1);
+          parsed = JSON.parse(jsonOnly);
+        } else {
+          throw e; // Reraise if no braces found
+        }
+      }
+
+      roastText = parsed.roast_text || "";
+    } catch (e) {
+      console.warn("API: JSON Parse Failure, falling back to raw text.", e);
+      // Fallback: If it's a raw string, use it. If it looks like JSON but failed, try to regex the roast_text field.
+      const match = text.match(/"roast_text"\s*:\s*"([^"]+)"/);
+      roastText = match ? match[1] : text.replace(/[{}]/g, '').replace(/"roast_text":/g, '').trim();
     }
 
-    const roastText = parsed.roast_text || text;
+    if (!roastText && text) roastText = text;
 
     if (!roastText) {
       return NextResponse.json({ error: 'No response generated' }, { status: 500 });

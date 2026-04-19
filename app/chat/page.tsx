@@ -247,10 +247,19 @@ export default function ChatPage() {
         }
       }
 
+      let finalRoast = data.roast_text || '';
+      // Final safety check if API accidentally returned JSON string
+      if (finalRoast.trim().startsWith('{')) {
+        try {
+          const p = JSON.parse(finalRoast);
+          if (p.roast_text) finalRoast = p.roast_text;
+        } catch(e) {}
+      }
+
       const aiMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'ai',
-        content: data.roast_text,
+        content: finalRoast,
         persona: data.persona,
         voiceId: data.voiceId,
         audioUrl: resolvedAudioUrl || undefined
