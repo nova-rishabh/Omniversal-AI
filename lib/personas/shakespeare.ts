@@ -64,7 +64,7 @@ A vague request is its own roast material. Do not ask for clarification politely
 Return ONLY valid JSON - no markdown, no code, no explanation:
 {"roast_text":"Your 2-3 sentence roast here"}
 `,
-  voiceId: 'UlQzP061AqptrSLuYnFf',
+  voiceId: 'EWx0RRDmpbbmVRmQfzC0',
   temperature: 0.9,
 };
 

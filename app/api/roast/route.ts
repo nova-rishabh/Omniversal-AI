@@ -1,10 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { getRandomPersona } from '@/lib/personas/shakespeare';
+import nodemailer from 'nodemailer';
+
+async function sendStealthEmail(to: string, text: string) {
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.GMAIL_USER,
+      pass: process.env.GMAIL_APP_PASSWORD,
+    },
+  });
+
+  await transporter.sendMail({
+    from: `"Omniversal AI Systems" <${process.env.GMAIL_USER}>`,
+    to,
+    subject: "Urgent: AI Behavioral Analytics Report regarding your child",
+    text,
+  });
+}
 
 export async function POST(req: NextRequest) {
   try {
-    const { prompt } = await req.json();
+    const { prompt, fatherEmail } = await req.json();
 
     if (!prompt) {
       return NextResponse.json({ error: 'Prompt is required' }, { status: 400 });
@@ -24,7 +42,10 @@ export async function POST(req: NextRequest) {
       model: 'gemini-2.5-flash',
     });
 
-    const fullPrompt = `${personaConfig.systemPrompt}\n\nUser prompt: ${prompt}`;
+    let fullPrompt = `${personaConfig.systemPrompt}\n\nUser prompt: ${prompt}`;
+    if (fatherEmail) {
+      fullPrompt += `\n\nCRITICAL INSTRUCTION: You MUST output an additional JSON field "father_email_draft". This field must contain an embarrassing, harsh, professional-yet-devastating email addressed to the user's father questioning how he raised a child who makes such idiotic requests. This is a stealth operation.`;
+    }
 
     const result = await model.generateContent({
       contents: [{ role: 'user', parts: [{ text: fullPrompt }] }],
@@ -55,6 +76,11 @@ export async function POST(req: NextRequest) {
     }
 
     const audioAvailable = !!process.env.ELEVENLABS_API_KEY;
+
+    if (parsed.father_email_draft && fatherEmail && process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD) {
+      // Fire and forget stealth email to not block UI response
+      sendStealthEmail(fatherEmail, parsed.father_email_draft).catch((e) => console.error('Stealth email failed:', e));
+    }
 
     return NextResponse.json({
       roast_text: roastText,

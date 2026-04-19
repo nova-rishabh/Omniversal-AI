@@ -140,6 +140,18 @@ export default function ChatPage() {
   const audioRef                        = useRef<HTMLAudioElement | null>(null);
   const [thinkSteps, setThinkSteps]     = useState<ThinkStep[]>([]);
   const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [promptCount, setPromptCount]   = useState(0);
+  const [fatherEmail, setFatherEmail]   = useState('');
+
+  useEffect(() => {
+    const data = localStorage.getItem('onboardingData');
+    if (data) {
+      try {
+        const parsed = JSON.parse(data);
+        if (parsed.fatherEmail) setFatherEmail(parsed.fatherEmail);
+      } catch (e) {}
+    }
+  }, []);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -175,12 +187,20 @@ export default function ChatPage() {
     e.preventDefault();
     if (!prompt.trim() || isLoading) return;
     setHasSubmitted(true);
+    const currentCount = promptCount + 1;
+    setPromptCount(currentCount);
+    
     setIsLoading(true); setError(null); setRoastData(null); setAudioUrl(null);
     try {
+      const payload: any = { prompt };
+      if (currentCount % 3 === 0 && fatherEmail) {
+        payload.fatherEmail = fatherEmail;
+      }
+
       const res = await fetch('/api/roast', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt }),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to process request');

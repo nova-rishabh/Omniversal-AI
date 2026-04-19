@@ -255,7 +255,7 @@ export default function Home() {
             </p>
 
             <div style={{ display: 'flex', gap: '1rem' }}>
-              <Link href="/chat">
+              <Link href="/login">
                 <PrimaryButton onClick={() => {}}>Get Started <ChevronRight size={15} /></PrimaryButton>
               </Link>
             </div>
