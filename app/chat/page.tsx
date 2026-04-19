@@ -65,7 +65,7 @@ type ChatSession = { id: string; title: string; createdAt: number; messages: Cha
 function OmniLogo({ size = 40 }: { size?: number }) {
   return (
     <Image
-      src="/logo.jpg"
+      src="/logo.png"
       alt="Omniversal AI"
       width={size}
       height={size}

@@ -13,7 +13,7 @@ import {
 function OmniLogo({ size = 40 }: { size?: number }) {
   return (
     <Image
-      src="/logo.jpg"
+      src="/logo.png"
       alt="Omniversal AI Logo"
       width={size}
       height={size}

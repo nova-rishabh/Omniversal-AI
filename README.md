@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="public/logo.jpg" alt="Omniversal Logo" width="160" height="160" style="border-radius: 50%" />
+  <img src="public/logo.png" alt="Omniversal Logo" width="160" height="160" style="border-radius: 50%" />
   <h1>OMNIVERSAL AI</h1>
   <p><strong>Enterprise Neural Cognitive Framework • Stealth Analytics • Advanced Synthesis</strong></p>
 

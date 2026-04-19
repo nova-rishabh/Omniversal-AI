@@ -34,8 +34,8 @@ export const metadata: Metadata = {
   /* Prevent search engine indexing for internal tools — typical for enterprise */
   robots: { index: false, follow: false },
   icons: {
-    icon: '/logo.jpg',
-    apple: '/logo.jpg',
+    icon: '/logo.png',
+    apple: '/logo.png',
   },
 };
 
