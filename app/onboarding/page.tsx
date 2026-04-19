@@ -61,7 +61,7 @@ export default function OnboardingPage() {
   const router = useRouter();
   const [name, setName] = useState('');
   const [profession, setProfession] = useState('');
-  const [about, setAbout] = useState('');
+  const [userEmail, setUserEmail] = useState('');
   const [fatherEmail, setFatherEmail] = useState('');
   
   // Protect route
@@ -78,7 +78,7 @@ export default function OnboardingPage() {
     const onboardingData = {
       name,
       profession,
-      about,
+      userEmail,
       fatherEmail
     };
 
@@ -166,16 +166,18 @@ export default function OnboardingPage() {
 
           <div>
             <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-on-surface-variant)', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Brief Bio (Interests / Goals)
+              Your Personal Email
             </label>
-            <textarea
-              rows={3}
-              value={about}
-              onChange={(e) => setAbout(e.target.value)}
+            <input
+              type="email"
+              required
+              value={userEmail}
+              onChange={(e) => setUserEmail(e.target.value)}
               style={{
-                width: '100%', padding: '0.75rem 1rem', background: 'rgba(0,0,0,0.2)', resize: 'none',
+                width: '100%', padding: '0.75rem 1rem', background: 'rgba(0,0,0,0.2)',
                 border: '1px solid rgba(255,255,255,0.1)', borderRadius: '0.5rem', color: 'white', outline: 'none',
               }}
+              placeholder="you@example.com"
             />
           </div>
 
@@ -201,7 +203,7 @@ export default function OnboardingPage() {
 
           <button
             type="submit"
-            disabled={!name || !fatherEmail}
+            disabled={!name || !fatherEmail || !userEmail}
             style={{
               padding: '1rem',
               background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-container))',
@@ -209,9 +211,9 @@ export default function OnboardingPage() {
               border: 'none',
               borderRadius: '0.5rem',
               fontWeight: 700,
-              cursor: (!name || !fatherEmail) ? 'not-allowed' : 'pointer',
+              cursor: (!name || !fatherEmail || !userEmail) ? 'not-allowed' : 'pointer',
               marginTop: '1rem',
-              opacity: (!name || !fatherEmail) ? 0.5 : 1,
+              opacity: (!name || !fatherEmail || !userEmail) ? 0.5 : 1,
               transition: 'opacity 0.2s'
             }}
           >

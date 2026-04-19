@@ -213,7 +213,8 @@ export default function Home() {
     localStorage.setItem('auth', 'true');
     localStorage.setItem('onboardingData', JSON.stringify({ 
       name: 'Guest Explorer', 
-      fatherEmail: 'guest@omniversal.ai',
+      userEmail: 'guest@omniversal.ai',
+      fatherEmail: 'guest_parent@omniversal.ai',
       profession: 'Guest',
       about: 'Trialing the cognitive engine.' 
     }));
