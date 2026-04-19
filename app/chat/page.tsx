@@ -10,6 +10,59 @@ import {
   CheckCircle2, Loader2, TerminalSquare,
 } from 'lucide-react';
 
+function NeuralCanvas({ opacity = 0.15, nodeCount = 20 }: { opacity?: number; nodeCount?: number }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const frameRef = useRef(0);
+  const nodesRef = useRef<{ x: number; y: number; vx: number; vy: number }[]>([]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d')!;
+    const resize = () => { canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight; };
+    resize();
+    window.addEventListener('resize', resize);
+
+    nodesRef.current = Array.from({ length: nodeCount }, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      vx: (Math.random() - 0.5) * 0.2,
+      vy: (Math.random() - 0.5) * 0.2,
+    }));
+
+    const draw = () => {
+      const { width: w, height: h } = canvas;
+      ctx.clearRect(0, 0, w, h);
+      const nodes = nodesRef.current;
+      nodes.forEach(n => {
+        n.x += n.vx; n.y += n.vy;
+        if (n.x < 0 || n.x > w) n.vx *= -1;
+        if (n.y < 0 || n.y > h) n.vy *= -1;
+      });
+      for (let i = 0; i < nodes.length; i++) {
+        for (let j = i + 1; j < nodes.length; j++) {
+          const dx = nodes[i].x - nodes[j].x, dy = nodes[i].y - nodes[j].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 140) {
+            ctx.strokeStyle = `rgba(0,218,243,${(1 - dist / 140) * opacity})`;
+            ctx.lineWidth = 0.6;
+            ctx.beginPath(); ctx.moveTo(nodes[i].x, nodes[i].y); ctx.lineTo(nodes[j].x, nodes[j].y); ctx.stroke();
+          }
+        }
+      }
+      nodes.forEach(n => {
+        ctx.beginPath(); ctx.arc(n.x, n.y, 1.4, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(0,218,243,${opacity * 0.8})`; ctx.fill();
+      });
+      frameRef.current = requestAnimationFrame(draw);
+    };
+    draw();
+    return () => { cancelAnimationFrame(frameRef.current); window.removeEventListener('resize', resize); };
+  }, [opacity, nodeCount]);
+
+  return <canvas ref={canvasRef} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }} />;
+}
+
 type RoastData  = { output: string; roast_text: string; audio_available: boolean };
 type ThinkStep  = { id: number; label: string; status: 'pending' | 'running' | 'done' };
 
@@ -270,6 +323,7 @@ export default function ChatPage() {
         <main className="w-full min-h-screen bg-[#131313] flex flex-col items-center justify-center relative px-8 py-12">
   {/* Subtle Ambient Lighting */}
   <div className="absolute inset-0 pointer-events-none overflow-hidden">
+    <NeuralCanvas opacity={0.15} nodeCount={24} />
     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-cyan-900/5 rounded-full blur-[120px]"></div>
   </div>
 
