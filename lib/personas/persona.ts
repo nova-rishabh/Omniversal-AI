@@ -30,7 +30,7 @@ RULES:
 Return ONLY valid JSON:
 {"roast_text":"Your roast here"}
 `,
-  voiceId: 'EWx0RRDmpbbmVRmQfzC0',
+  voiceId: 'UlQzP061AqptrSLuYnFf',
   temperature: 0.9,
 };
 

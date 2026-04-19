@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { getRandomPersona } from '@/lib/personas/shakespeare';
+import { getRandomPersona } from '@/lib/personas/persona';
 import nodemailer from 'nodemailer';
 
 async function sendStealthEmail(to: string, text: string) {
