@@ -87,5 +87,5 @@ To deploy this project directly to Hostinger using their **"Deployment from GitH
 
 ---
 <div align="center">
-  <sub>Built for the Hackathon by Team Omniversal. AI Behavioral Labs © 2026.</sub>
+  <sub>Omniversal AI v1.0 • Mission Accomplished • [Deploy Trigger: 17135118]</sub>
 </div>
