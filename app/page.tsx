@@ -278,7 +278,7 @@ export default function Home() {
             <div style={{ display: 'flex', gap: '1rem' }}>
               <Link href={isLoggedIn ? "/chat" : "/login"}>
                 <PrimaryButton onClick={() => {}}>
-                  {isLoggedIn ? 'Go to Dashboard' : 'Get Started'} <ChevronRight size={15} />
+                  {isLoggedIn ? 'Go to Chat' : 'Get Started'} <ChevronRight size={15} />
                 </PrimaryButton>
               </Link>
               {!isLoggedIn && (
