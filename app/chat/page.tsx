@@ -385,23 +385,33 @@ export default function ChatPage() {
                     </div>
 
               {/* Status Indicator (centered + smooth) */}
-              <div className="mt-6 flex justify-center">
-                <div className="flex items-center gap-3 px-4 py-3 bg-white/5 rounded-full border border-white/10">
-                  <Loader2 
-                    size={16} 
-                    className="animate-spin" 
-                    style={{ color: 'var(--color-primary)' }} 
-                  />
-                  <span className="font-['Geist_Mono'] text-xs font-medium text-neutral-400 tracking-wide">
-                    Generating response
-                  </span>
-                  <span className="flex gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-neutral-600 animate-pulse" style={{ animationDelay: '0ms' }} />
-                    <span className="w-1.5 h-1.5 rounded-full bg-neutral-600 animate-pulse" style={{ animationDelay: '150ms' }} />
-                    <span className="w-1.5 h-1.5 rounded-full bg-neutral-600 animate-pulse" style={{ animationDelay: '300ms' }} />
-                  </span>
-                </div>
-              </div>
+              <AnimatePresence>
+                {isLoading && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.3 }}
+                    className="mt-8 flex justify-center"
+                  >
+                    <div className="flex items-center gap-3 px-4 py-3">
+                      <Loader2 
+                        size={16} 
+                        className="ultra-slow-spin" 
+                        style={{ color: 'var(--color-primary)' }} 
+                      />
+                      <span className="font-['Geist_Mono'] text-xs font-medium text-neutral-400 tracking-wide">
+                        Generating response
+                      </span>
+                      <span className="flex gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-neutral-600 ultra-slow-pulse-1" />
+                        <span className="w-1.5 h-1.5 rounded-full bg-neutral-600 ultra-slow-pulse-2" />
+                        <span className="w-1.5 h-1.5 rounded-full bg-neutral-600 ultra-slow-pulse-3" />
+                      </span>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </form>
 
             {/* Error Message */}
