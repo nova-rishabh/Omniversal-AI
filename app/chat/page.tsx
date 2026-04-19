@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
-import { CheckCircle2, Loader2, TerminalSquare, MessageSquarePlus, Volume2 } from 'lucide-react';
+import { CheckCircle2, Loader2, TerminalSquare, MessageSquarePlus, Volume2, Copy, Check } from 'lucide-react';
 
 function NeuralCanvas({ opacity = 0.15, nodeCount = 20 }: { opacity?: number; nodeCount?: number }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -313,6 +313,14 @@ export default function ChatPage() {
     } catch(e) { } finally { setReplayingId(null); }
   };
 
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const handleCopy = (id: string, text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
+
   useEffect(() => { return () => { if (audioUrl) URL.revokeObjectURL(audioUrl); }; }, [audioUrl]);
 
   function renderInputBar() {
@@ -478,23 +486,42 @@ export default function ChatPage() {
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                               <span style={{ fontSize: '10px', color: 'rgb(34,211,238)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.15em' }}>Response {msg.persona && `• ${msg.persona}`}</span>
                             </div>
-                            {msg.audioUrl && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                               <button
-                                onClick={() => handleReplayAudio(msg)}
-                                disabled={replayingId === msg.id}
+                                onClick={() => handleCopy(msg.id, msg.content)}
                                 style={{
-                                  background: 'none', border: 'none', cursor: replayingId === msg.id ? 'wait' : 'pointer',
-                                  color: 'var(--color-primary)', display: 'flex', alignItems: 'center', gap: '4px',
-                                  fontSize: '0.75rem', fontWeight: 600, padding: 0, opacity: replayingId === msg.id ? 0.3 : 0.7,
-                                  transition: 'opacity 200ms'
+                                  background: 'none', border: 'none', cursor: 'pointer',
+                                  color: copiedId === msg.id ? 'rgb(34,211,238)' : 'var(--color-on-surface-variant)',
+                                  display: 'flex', alignItems: 'center', gap: '4px',
+                                  fontSize: '0.75rem', fontWeight: 600, padding: 0, opacity: 0.7,
+                                  transition: 'all 200ms'
                                 }}
                                 onMouseEnter={e => e.currentTarget.style.opacity = '1'}
                                 onMouseLeave={e => e.currentTarget.style.opacity = '0.7'}
-                                title="Replay Audio"
+                                title="Copy Text"
                               >
-                                <Volume2 size={14} /> Replay
+                                {copiedId === msg.id ? <Check size={14} /> : <Copy size={14} />}
+                                {copiedId === msg.id ? 'Copied' : 'Copy'}
                               </button>
-                            )}
+
+                              {msg.audioUrl && (
+                                <button
+                                  onClick={() => handleReplayAudio(msg)}
+                                  disabled={replayingId === msg.id}
+                                  style={{
+                                    background: 'none', border: 'none', cursor: replayingId === msg.id ? 'wait' : 'pointer',
+                                    color: 'var(--color-primary)', display: 'flex', alignItems: 'center', gap: '4px',
+                                    fontSize: '0.75rem', fontWeight: 600, padding: 0, opacity: replayingId === msg.id ? 0.3 : 0.7,
+                                    transition: 'opacity 200ms'
+                                  }}
+                                  onMouseEnter={e => e.currentTarget.style.opacity = '1'}
+                                  onMouseLeave={e => e.currentTarget.style.opacity = '0.7'}
+                                  title="Replay Audio"
+                                >
+                                  <Volume2 size={14} /> Replay
+                                </button>
+                              )}
+                            </div>
                           </div>
                           <div style={{ fontSize: '0.9rem', color: 'rgb(212,212,212)', lineHeight: 1.7, fontFamily: 'var(--font-sans)' }}>
                             {index === messages.length - 1 && !isLoading ? (
