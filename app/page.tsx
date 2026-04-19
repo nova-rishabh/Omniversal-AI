@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
@@ -202,12 +202,13 @@ function SecondaryButton({ children, onClick, type = 'button' }: {
 
 export default function Home() {
   const router = useRouter();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
-    if (localStorage.getItem('auth') === 'true') {
-      router.push('/chat');
+    if (typeof window !== 'undefined' && localStorage.getItem('auth') === 'true') {
+      setIsLoggedIn(true);
     }
-  }, [router]);
+  }, []);
 
   const handleFreeChat = () => {
     localStorage.setItem('auth', 'true');
@@ -275,10 +276,14 @@ export default function Home() {
             </p>
 
             <div style={{ display: 'flex', gap: '1rem' }}>
-              <Link href="/login">
-                <PrimaryButton onClick={() => {}}>Get Started <ChevronRight size={15} /></PrimaryButton>
+              <Link href={isLoggedIn ? "/chat" : "/login"}>
+                <PrimaryButton onClick={() => {}}>
+                  {isLoggedIn ? 'Go to Dashboard' : 'Get Started'} <ChevronRight size={15} />
+                </PrimaryButton>
               </Link>
-              <SecondaryButton onClick={handleFreeChat}>Chat for Free <MessageSquare size={15} /></SecondaryButton>
+              {!isLoggedIn && (
+                <SecondaryButton onClick={handleFreeChat}>Chat for Free <MessageSquare size={15} /></SecondaryButton>
+              )}
             </div>
           </motion.div>
 

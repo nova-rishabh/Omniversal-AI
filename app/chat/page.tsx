@@ -445,7 +445,7 @@ export default function ChatPage() {
           </div>
           <div style={{ marginTop: 'auto' }}>
             <Link href="/" className="label-sm" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-on-surface-variant)', display: 'flex', alignItems: 'center', gap: 6, padding: 0, transition: 'color 200ms ease-out', textDecoration: 'none' }}>
-              ← Return to Dashboard
+              ← Return to Home
             </Link>
           </div>
         </aside>
