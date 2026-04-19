@@ -13,6 +13,9 @@
 # testing
 /coverage
 
+#scratch folder
+/scratch/
+
 # next.js
 /.next/
 /out/
