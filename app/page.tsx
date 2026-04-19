@@ -369,7 +369,7 @@ export default function Home() {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <OmniLogo size={24} />
-          <span className="label-sm">© 2026 Omniversal AI · All rights reserved</span>
+          <span className="label-sm">© 2026 Omniversal AI · AI Hackfest 2026 Submission</span>
         </div>
         <span className="label-sm">System Status: Operational</span>
       </footer>
