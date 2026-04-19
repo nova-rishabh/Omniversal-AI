@@ -141,33 +141,8 @@ export default function ChatPage() {
   const [thinkSteps, setThinkSteps]     = useState<ThinkStep[]>([]);
   const [hasSubmitted, setHasSubmitted] = useState(false);
 
-  // Persona state
-  const [personas, setPersonas] = useState<{ key: string; name: string; description: string }[]>([]);
-  const [selectedPersona, setSelectedPersona] = useState('shakespeare');
-  const [personaDropdownOpen, setPersonaDropdownOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  // Fetch available personas on mount
-  useEffect(() => {
-    fetch('/api/personas')
-      .then(r => r.json())
-      .then(data => { if (Array.isArray(data) && data.length > 0) setPersonas(data); })
-      .catch(() => {});
-  }, []);
-
-  // Close dropdown on outside click
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setPersonaDropdownOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, []);
 
   // Thinking steps animation
   useEffect(() => {
@@ -205,7 +180,7 @@ export default function ChatPage() {
       const res = await fetch('/api/roast', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt, persona: selectedPersona }),
+        body: JSON.stringify({ prompt }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to process request');
@@ -239,7 +214,7 @@ export default function ChatPage() {
 
   useEffect(() => { return () => { if (audioUrl) URL.revokeObjectURL(audioUrl); }; }, [audioUrl]);
 
-  const activePersona = personas.find(p => p.key === selectedPersona);
+
 
   /* ── Shared input bar (used in both centered + bottom positions) ──────── */
   function renderInputBar() {
@@ -295,101 +270,8 @@ export default function ChatPage() {
             justifyContent: 'space-between',
             padding: '0.375rem 0.5rem 0.5rem 0.75rem',
           }}>
-            {/* Persona switcher */}
-            <div ref={dropdownRef} style={{ position: 'relative' }}>
-              <button
-                type="button"
-                onClick={() => setPersonaDropdownOpen(!personaDropdownOpen)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.375rem',
-                  background: 'rgba(255,255,255,0.04)',
-                  border: '1px solid rgba(255,255,255,0.08)',
-                  borderRadius: '0.5rem',
-                  padding: '0.3rem 0.625rem',
-                  cursor: 'pointer',
-                  color: 'var(--color-on-surface-variant)',
-                  fontSize: '0.7rem',
-                  fontWeight: 600,
-                  letterSpacing: '0.04em',
-                  transition: 'all 200ms',
-                  fontFamily: 'inherit',
-                }}
-              >
-                <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--color-primary)', flexShrink: 0 }} />
-                {activePersona?.name || 'Shakespeare'}
-                <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{
-                  transform: personaDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-                  transition: 'transform 200ms',
-                }}>
-                  <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </button>
-
-              {/* Dropdown */}
-              <AnimatePresence>
-                {personaDropdownOpen && personas.length > 0 && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 4, scale: 0.96 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 4, scale: 0.96 }}
-                    transition={{ duration: 0.15 }}
-                    style={{
-                      position: 'absolute',
-                      bottom: '100%',
-                      left: 0,
-                      marginBottom: '0.375rem',
-                      background: '#1a1a1a',
-                      border: '1px solid rgba(255,255,255,0.1)',
-                      borderRadius: '0.625rem',
-                      padding: '0.25rem',
-                      minWidth: '220px',
-                      boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
-                      zIndex: 50,
-                    }}
-                  >
-                    {personas.map(p => (
-                      <button
-                        key={p.key}
-                        type="button"
-                        onClick={() => { setSelectedPersona(p.key); setPersonaDropdownOpen(false); }}
-                        style={{
-                          display: 'flex',
-                          flexDirection: 'column',
-                          width: '100%',
-                          textAlign: 'left',
-                          padding: '0.5rem 0.75rem',
-                          borderRadius: '0.375rem',
-                          border: 'none',
-                          cursor: 'pointer',
-                          background: selectedPersona === p.key ? 'rgba(0,218,243,0.08)' : 'transparent',
-                          transition: 'background 150ms',
-                          fontFamily: 'inherit',
-                        }}
-                        onMouseEnter={e => { if (selectedPersona !== p.key) e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
-                        onMouseLeave={e => { e.currentTarget.style.background = selectedPersona === p.key ? 'rgba(0,218,243,0.08)' : 'transparent'; }}
-                      >
-                        <span style={{
-                          fontSize: '0.75rem',
-                          fontWeight: 600,
-                          color: selectedPersona === p.key ? 'var(--color-primary)' : 'var(--color-on-surface)',
-                        }}>
-                          {p.name}
-                        </span>
-                        <span style={{
-                          fontSize: '0.65rem',
-                          color: 'var(--color-on-surface-variant)',
-                          marginTop: '0.125rem',
-                        }}>
-                          {p.description}
-                        </span>
-                      </button>
-                    ))}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+            {/* Spacer for layout consistency when send button goes right */}
+            <div />
 
             {/* Send button — upward arrow */}
             <button

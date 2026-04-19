@@ -235,6 +235,15 @@ export function getPersona(key: PersonaKey): PersonaConfig {
 }
 
 /* ---------------------------------------------
+   RANDOM PERSONA
+--------------------------------------------- */
+export function getRandomPersona(): PersonaConfig {
+  const keys = Object.keys(personas) as PersonaKey[];
+  const randomKey = keys[Math.floor(Math.random() * keys.length)];
+  return personas[randomKey];
+}
+
+/* ---------------------------------------------
    LIST PERSONAS
 --------------------------------------------- */
 export function listPersonas(): {

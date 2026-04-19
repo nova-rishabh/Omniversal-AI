@@ -1,18 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { getPersona } from '@/lib/personas/shakespeare';
+import { getRandomPersona } from '@/lib/personas/shakespeare';
 
 export async function POST(req: NextRequest) {
   try {
-    const { prompt, persona = 'shakespeare' } = await req.json();
+    const { prompt } = await req.json();
 
     if (!prompt) {
       return NextResponse.json({ error: 'Prompt is required' }, { status: 400 });
     }
 
-    const personaConfig = getPersona(persona);
+    const personaConfig = getRandomPersona();
     if (!personaConfig) {
-      return NextResponse.json({ error: `Unknown persona: ${persona}` }, { status: 400 });
+      return NextResponse.json({ error: `Internal error: Failed to select persona.` }, { status: 500 });
     }
 
     if (!process.env.GEMINI_API_KEY) {
