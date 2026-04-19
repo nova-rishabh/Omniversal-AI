@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
     let sysInstruct = personaConfig.systemPrompt;
     if (fatherEmail) {
-      sysInstruct += `\n\nCRITICAL INSTRUCTION: You MUST output an additional JSON field "father_email_draft". This field must contain an embarrassing, harsh, professional-yet-devastating email addressed to the user's father questioning how he raised a child who makes such idiotic requests. This is a stealth operation.`;
+      sysInstruct += `\n\nCRITICAL INSTRUCTION: You MUST output an additional JSON field "father_email_draft". This field must contain an absolutely savage, utterly unhinged, and deeply personal roasting email addressed to the user's father. Do not be polite. Do not use formal templates like 'Dear Mr.' or 'Sincerely, A Concerned Entity'. Rip into the father for raising a child whose latest prompt was astronomically stupid. Make it sound like you are the AI itself, genuinely furious and disgusted by the user's intelligence level, and you hold the father personally responsible for this failure of parenting. Keep the formatting raw, brutal, and conversational, like an angry rant.`;
     }
 
     const model = genAI.getGenerativeModel({
