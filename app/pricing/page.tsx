@@ -278,6 +278,7 @@ export default function PricingPage() {
             ['Home', '/'],
             ['Features', '/features'],
             ['Pricing', '#'],
+            ['Login', '/login'],
           ].map(([label, href]) => (
             <Link key={label} href={href} style={{
               fontSize: 'var(--text-body-md)', color: 'var(--color-on-surface-variant)',

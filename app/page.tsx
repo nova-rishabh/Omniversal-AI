@@ -1,12 +1,13 @@
 'use client';
 
 import { useRef, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
 import {
   Zap, Shield, ChevronRight,
-  Activity, Cpu, Clock, Sparkles, Brain,
+  Activity, Cpu, Clock, Sparkles, Brain, MessageSquare
 } from 'lucide-react';
 
 function OmniLogo({ size = 40 }: { size?: number }) {
@@ -200,6 +201,24 @@ function SecondaryButton({ children, onClick, type = 'button' }: {
 }
 
 export default function Home() {
+  const router = useRouter();
+
+  useEffect(() => {
+    if (localStorage.getItem('auth') === 'true') {
+      router.push('/chat');
+    }
+  }, [router]);
+
+  const handleFreeChat = () => {
+    localStorage.setItem('auth', 'true');
+    localStorage.setItem('onboardingData', JSON.stringify({ 
+      name: 'Guest Explorer', 
+      fatherEmail: 'guest@omniversal.ai',
+      profession: 'Guest',
+      about: 'Trialing the cognitive engine.' 
+    }));
+    router.push('/chat');
+  };
   return (
     <div style={{ minHeight: '100vh', background: 'var(--color-surface)', color: 'var(--color-on-surface)', position: 'relative', overflow: 'hidden' }}>
 
@@ -216,8 +235,8 @@ export default function Home() {
       }}>
         <OmniWordmark logoSize={38} />
 
-        <nav style={{ display: 'flex', gap: '2rem' }}>
-          {[['Features', '/features'], ['Pricing', '/pricing']].map(([label, href]) => (
+        <nav style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
+          {[['Features', '/features'], ['Pricing', '/pricing'], ['Login', '/login']].map(([label, href]) => (
             <a key={label} href={href} style={{
               fontSize: 'var(--text-body-md)', color: 'var(--color-on-surface-variant)',
               textDecoration: 'none', letterSpacing: '0.04em', transition: 'color 200ms ease-out',
@@ -258,6 +277,7 @@ export default function Home() {
               <Link href="/login">
                 <PrimaryButton onClick={() => {}}>Get Started <ChevronRight size={15} /></PrimaryButton>
               </Link>
+              <SecondaryButton onClick={handleFreeChat}>Chat for Free <MessageSquare size={15} /></SecondaryButton>
             </div>
           </motion.div>
 

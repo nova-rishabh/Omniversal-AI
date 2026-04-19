@@ -59,6 +59,13 @@ function NeuralCanvas({ opacity = 0.15, nodeCount = 20 }: { opacity?: number; no
 
 export default function LoginPage() {
   const router = useRouter();
+
+  useEffect(() => {
+    if (localStorage.getItem('auth') === 'true') {
+      router.push('/chat');
+    }
+  }, [router]);
+
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');

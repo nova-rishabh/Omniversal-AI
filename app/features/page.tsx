@@ -215,6 +215,7 @@ export default function FeaturesPage() {
             ['Home', '/'],
             ['Features', '#neural'],
             ['Pricing', '/pricing'],
+            ['Login', '/login'],
           ].map(([label, href]) => (
             <Link key={label} href={href} style={{
               fontSize: 'var(--text-body-md)', color: 'var(--color-on-surface-variant)',
