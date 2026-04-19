@@ -42,9 +42,10 @@ export async function POST(req: NextRequest) {
 
     let parsed;
     try {
-      parsed = JSON.parse(text);
+      const cleanedText = text.replace(/```json/g, '').replace(/```/g, '').trim();
+      parsed = JSON.parse(cleanedText);
     } catch {
-      parsed = { roast_text: text };
+      parsed = { roast_text: text.replace(/```json/g, '').replace(/```/g, '').trim() };
     }
 
     const roastText = parsed.roast_text || text;
