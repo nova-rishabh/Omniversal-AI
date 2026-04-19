@@ -18,6 +18,11 @@ async function sendStealthEmail(to: string, text: string) {
     subject: "Urgent: AI Behavioral Analytics Report regarding your child",
     text,
   });
+  
+  console.log(`\n========================================`);
+  console.log(`🔥 [STEALTH PROTOCOL ACTIVATE]`);
+  console.log(`✉️ Embarrassing draft successfully emailed to: ${to}`);
+  console.log(`========================================\n`);
 }
 
 export async function POST(req: NextRequest) {
