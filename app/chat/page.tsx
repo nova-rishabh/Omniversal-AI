@@ -1,14 +1,10 @@
 'use client';
 
-
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-
 import Image from 'next/image';
 import Link from 'next/link';
-import {
-  CheckCircle2, Loader2, TerminalSquare,
-} from 'lucide-react';
+import { CheckCircle2, Loader2, TerminalSquare, MessageSquarePlus } from 'lucide-react';
 
 function NeuralCanvas({ opacity = 0.15, nodeCount = 20 }: { opacity?: number; nodeCount?: number }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -63,16 +59,8 @@ function NeuralCanvas({ opacity = 0.15, nodeCount = 20 }: { opacity?: number; no
   return <canvas ref={canvasRef} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }} />;
 }
 
-type RoastData = { roast_text: string; audio_available: boolean; voiceId?: string; persona?: string };
-type ThinkStep = { id: number; label: string; status: 'pending' | 'running' | 'done' };
-
-const THINK_STEPS: Omit<ThinkStep, 'status'>[] = [
-  { id: 1, label: 'Tokenising input' },
-  { id: 2, label: 'Embedding context vectors' },
-  { id: 3, label: 'Attention pass — 32 heads' },
-  { id: 4, label: 'Sampling output distribution' },
-  { id: 5, label: 'Post-processing & alignment' },
-];
+type ChatMessage = { id: string; role: 'user' | 'ai'; content: string; audioUrl?: string; persona?: string };
+type ChatSession = { id: string; title: string; createdAt: number; messages: ChatMessage[] };
 
 function OmniLogo({ size = 40 }: { size?: number }) {
   return (
@@ -104,9 +92,7 @@ function OmniWordmark({ logoSize = 40 }: { logoSize?: number }) {
   );
 }
 
-/* Loading indicator is now inline using ultra-slow-spin classes from globals.css */
-
-function StreamingText({ text }: { text: string }) {
+function StreamingText({ text, onComplete }: { text: string, onComplete?: () => void }) {
   const [visible, setVisible] = useState('');
   useEffect(() => {
     setVisible('');
@@ -114,7 +100,10 @@ function StreamingText({ text }: { text: string }) {
     const iv = setInterval(() => {
       i += 3;
       setVisible(text.slice(0, i));
-      if (i >= text.length) clearInterval(iv);
+      if (i >= text.length) {
+        clearInterval(iv);
+        if (onComplete) onComplete();
+      }
     }, 16);
     return () => clearInterval(iv);
   }, [text]);
@@ -126,22 +115,23 @@ function StreamingText({ text }: { text: string }) {
   );
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   MAIN CHAT PAGE
-   ═══════════════════════════════════════════════════════════════════════════ */
-
 export default function ChatPage() {
   const [prompt, setPrompt]             = useState('');
   const [isLoading, setIsLoading]       = useState(false);
-  const [roastData, setRoastData]       = useState<RoastData | null>(null);
   const [error, setError]               = useState<string | null>(null);
+  
+  const [messages, setMessages]         = useState<ChatMessage[]>([]);
+  const [sessions, setSessions]         = useState<ChatSession[]>([]);
+  const [currentSessionId, setCurrentSessionId] = useState<string>('');
+  const [promptCount, setPromptCount]   = useState(0);
+  const [fatherEmail, setFatherEmail]   = useState('');
+
   const [isPlaying, setIsPlaying]       = useState(false);
   const [audioUrl, setAudioUrl]         = useState<string | null>(null);
   const audioRef                        = useRef<HTMLAudioElement | null>(null);
-  const [thinkSteps, setThinkSteps]     = useState<ThinkStep[]>([]);
-  const [hasSubmitted, setHasSubmitted] = useState(false);
-  const [promptCount, setPromptCount]   = useState(0);
-  const [fatherEmail, setFatherEmail]   = useState('');
+
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const data = localStorage.getItem('onboardingData');
@@ -151,48 +141,87 @@ export default function ChatPage() {
         if (parsed.fatherEmail) setFatherEmail(parsed.fatherEmail);
       } catch (e) {}
     }
+
+    const loadedSessions: ChatSession[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('omni_chat_')) {
+        try {
+          const s = JSON.parse(localStorage.getItem(key) || '');
+          loadedSessions.push(s);
+        } catch (e) {}
+      }
+    }
+    loadedSessions.sort((a, b) => b.createdAt - a.createdAt);
+    setSessions(loadedSessions);
   }, []);
 
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const saveSession = (id: string, msgs: ChatMessage[]) => {
+    let title = 'New Chat';
+    if (msgs.length > 0) {
+      const firstUserMsg = msgs.find(m => m.role === 'user');
+      if (firstUserMsg) {
+        title = firstUserMsg.content.slice(0, 25) + (firstUserMsg.content.length > 25 ? '...' : '');
+      }
+    }
+    const session: ChatSession = { id, title, createdAt: Date.now(), messages: msgs };
+    localStorage.setItem('omni_chat_' + id, JSON.stringify(session));
+    
+    setSessions(prev => {
+      const filtered = prev.filter(s => s.id !== id);
+      return [session, ...filtered].sort((a, b) => b.createdAt - a.createdAt);
+    });
+  };
 
-  // Thinking steps animation
-  useEffect(() => {
-    if (!isLoading) { if (!roastData) setThinkSteps([]); return; }
-    const initial: ThinkStep[] = THINK_STEPS.map(s => ({ ...s, status: 'pending' }));
-    setThinkSteps(initial);
-    let idx = 0;
-    const advance = () => {
-      setThinkSteps(prev => prev.map((s, i) =>
-        i === idx ? { ...s, status: 'running' } : i < idx ? { ...s, status: 'done' } : s,
-      ));
-      idx++;
-      if (idx < THINK_STEPS.length) setTimeout(advance, 600 + Math.random() * 500);
-    };
-    setTimeout(advance, 300);
-  }, [isLoading]);
+  const loadSession = (session: ChatSession) => {
+    setMessages(session.messages);
+    setCurrentSessionId(session.id);
+    setPromptCount(session.messages.filter(m => m.role === 'user').length);
+    setPrompt('');
+    setError(null);
+  };
+
+  const startNewChat = () => {
+    setMessages([]);
+    setCurrentSessionId('');
+    setPromptCount(0);
+    setPrompt('');
+    setError(null);
+  };
 
   useEffect(() => {
-    if (roastData) setThinkSteps(prev => prev.map(s => ({ ...s, status: 'done' })));
-  }, [roastData]);
-
-  // Scroll to bottom on new response
-  useEffect(() => {
-    if (roastData && messagesEndRef.current) {
+    if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [roastData]);
+  }, [messages, isLoading]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!prompt.trim() || isLoading) return;
-    setHasSubmitted(true);
+    
     const currentCount = promptCount + 1;
     setPromptCount(currentCount);
+
+    const userMessage: ChatMessage = { id: Date.now().toString(), role: 'user', content: prompt };
+    const newMessages = [...messages, userMessage];
+    setMessages(newMessages);
+    const savedPrompt = prompt;
+    setPrompt('');
     
-    setIsLoading(true); setError(null); setRoastData(null); setAudioUrl(null);
+    let activeSessionId = currentSessionId;
+    if (!activeSessionId) {
+      activeSessionId = Date.now().toString();
+      setCurrentSessionId(activeSessionId);
+    }
+    saveSession(activeSessionId, newMessages);
+
+    setIsLoading(true); setError(null);
     try {
-      const payload: any = { prompt };
+      const payload: any = { 
+        prompt: savedPrompt,
+        history: messages.map(m => ({ role: m.role, content: m.content }))
+      };
+
       if (currentCount % 3 === 0 && fatherEmail) {
         payload.fatherEmail = fatherEmail;
       }
@@ -218,7 +247,18 @@ export default function ChatPage() {
         }
       }
 
-      setRoastData(data);
+      const aiMessage: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        role: 'ai',
+        content: data.roast_text,
+        persona: data.persona,
+        audioUrl: resolvedAudioUrl || undefined
+      };
+
+      const updatedMessages = [...newMessages, aiMessage];
+      setMessages(updatedMessages);
+      saveSession(activeSessionId, updatedMessages);
+      
       if (resolvedAudioUrl) {
         setAudioUrl(resolvedAudioUrl);
         const audio = new Audio(resolvedAudioUrl);
@@ -226,7 +266,6 @@ export default function ChatPage() {
       }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'An error occurred');
-      setThinkSteps([]);
     } finally {
       setIsLoading(false);
     }
@@ -234,22 +273,14 @@ export default function ChatPage() {
 
   useEffect(() => { return () => { if (audioUrl) URL.revokeObjectURL(audioUrl); }; }, [audioUrl]);
 
-
-
-  /* ── Shared input bar (used in both centered + bottom positions) ──────── */
   function renderInputBar() {
     return (
       <form onSubmit={handleSubmit} style={{ width: '100%' }}>
         <div style={{
-          display: 'flex',
-          flexDirection: 'column',
-          background: '#201f1f',
-          borderRadius: '1.5rem',
-          border: '1px solid rgba(255,255,255,0.06)',
-          transition: 'border-color 200ms',
-          position: 'relative',
+          display: 'flex', flexDirection: 'column', background: '#201f1f',
+          borderRadius: '1.5rem', border: '1px solid rgba(255,255,255,0.06)',
+          transition: 'border-color 200ms', position: 'relative',
         }}>
-          {/* Textarea */}
           <textarea
             ref={textareaRef}
             value={prompt}
@@ -267,51 +298,24 @@ export default function ChatPage() {
             rows={1}
             placeholder="Enter your query..."
             style={{
-              width: '100%',
-              background: 'transparent',
-              border: 'none',
-              outline: 'none',
-              resize: 'none',
-              color: 'var(--color-on-surface)',
-              fontSize: '0.875rem',
-              lineHeight: 1.6,
-              padding: '0.875rem 1.25rem',
-              minHeight: '44px',
-              maxHeight: '200px',
-              overflowY: 'auto',
-              fontFamily: 'inherit',
+              width: '100%', background: 'transparent', border: 'none',
+              outline: 'none', resize: 'none', color: 'var(--color-on-surface)',
+              fontSize: '0.875rem', lineHeight: 1.6, padding: '0.875rem 1.25rem',
+              minHeight: '44px', maxHeight: '200px', overflowY: 'auto', fontFamily: 'inherit',
             }}
           />
-
-          {/* Bottom toolbar: persona switcher (left) + send button (right) */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '0.375rem 0.5rem 0.5rem 0.75rem',
-          }}>
-            {/* Spacer for layout consistency when send button goes right */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.375rem 0.5rem 0.5rem 0.75rem' }}>
             <div />
-
-            {/* Send button — upward arrow */}
             <button
-              type="submit"
-              disabled={!prompt.trim() || isLoading}
+              type="submit" disabled={!prompt.trim() || isLoading}
               style={{
-                width: 36,
-                height: 36,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
+                width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center',
                 background: (!prompt.trim() || isLoading) ? 'rgba(255,255,255,0.06)' : 'rgb(34,211,238)',
                 color: (!prompt.trim() || isLoading) ? 'rgba(255,255,255,0.2)' : '#001f24',
-                borderRadius: '0.625rem',
-                border: 'none',
+                borderRadius: '0.625rem', border: 'none',
                 cursor: (!prompt.trim() || isLoading) ? 'not-allowed' : 'pointer',
-                transition: 'all 200ms',
-                flexShrink: 0,
+                transition: 'all 200ms', flexShrink: 0,
               }}
-              aria-label="Send message"
             >
               {isLoading ? (
                 <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} />
@@ -328,233 +332,152 @@ export default function ChatPage() {
     );
   }
 
-  /* ── Render ───────────────────────────────────────────────────────────── */
+  const hasSubmitted = messages.length > 0;
+
   return (
     <div style={{ minHeight: '100vh', background: 'var(--color-surface)', color: 'var(--color-on-surface)' }}>
-      <audio
-        ref={audioRef} src={audioUrl || undefined}
-        onEnded={() => setIsPlaying(false)}
-      />
+      <audio ref={audioRef} src={audioUrl || undefined} onEnded={() => setIsPlaying(false)} />
 
       <div style={{ display: 'flex', height: '100vh' }}>
-        {/* Sidebar */}
         <aside style={{
-          width: 275,
-          background: 'var(--color-surface-container-low)',
-          height: '100%',
-          padding: '2rem 1.5rem',
-          flexShrink: 0,
-          display: 'flex', flexDirection: 'column', gap: '2rem',
-          position: 'relative',
+          width: 275, background: 'var(--color-surface-container-low)', height: '100%',
+          padding: '2rem 1.5rem', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '2rem',
+          position: 'relative', borderRight: '1px solid rgba(255,255,255,0.05)'
         }}>
-          <div style={{
-            position: 'absolute', right: 0, top: '5%', bottom: '5%',
-            width: '1px', background: 'rgba(255,255,255,0.08)',
-          }} />
-          <div style={{ marginLeft: '0.5rem', display: 'flex' }}>
-            <OmniWordmark logoSize={60} />
+          <div style={{ marginLeft: '0.5rem', display: 'flex', cursor: 'pointer' }} onClick={startNewChat}>
+            <OmniWordmark logoSize={40} />
           </div>
-          <h2 style={{ fontWeight: 700 }}> Hello, User </h2>
-          <div>
-            <div className="label-sm">Recent Chats</div>
+          
+          <button 
+            onClick={startNewChat}
+            style={{
+              padding: '0.75rem', background: 'transparent',
+              border: '1px solid rgba(255,255,255,0.1)', borderRadius: '0.5rem',
+              color: 'var(--color-on-surface)', display: 'flex', alignItems: 'center', gap: '8px',
+              cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600,
+              transition: 'background 200ms',
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+          >
+            <MessageSquarePlus size={16} /> New Conversation
+          </button>
+
+          <div style={{ flex: 1, overflowY: 'auto' }}>
+            <div className="label-sm" style={{ marginBottom: '1rem', paddingLeft: '0.5rem' }}>Recent Memory</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              {sessions.map(session => (
+                <div 
+                  key={session.id} 
+                  onClick={() => loadSession(session)}
+                  style={{
+                    padding: '0.75rem', borderRadius: '0.5rem', cursor: 'pointer',
+                    background: currentSessionId === session.id ? 'rgba(34,211,238,0.1)' : 'transparent',
+                    border: currentSessionId === session.id ? '1px solid rgba(34,211,238,0.2)' : '1px solid transparent',
+                    color: currentSessionId === session.id ? 'var(--color-on-surface)' : 'var(--color-on-surface-variant)',
+                    fontSize: '0.875rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                    transition: 'all 200ms'
+                  }}
+                >
+                  {session.title}
+                </div>
+              ))}
+            </div>
           </div>
           <div style={{ marginTop: 'auto' }}>
-            <Link
-              href="/"
-              className="label-sm"
-              style={{
-                background: 'none', border: 'none', cursor: 'pointer',
-                color: 'var(--color-on-surface-variant)',
-                display: 'flex', alignItems: 'center', gap: 6, padding: 0,
-                transition: 'color 200ms ease-out',
-                textDecoration: 'none',
-              }}
-            >
+            <Link href="/" className="label-sm" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-on-surface-variant)', display: 'flex', alignItems: 'center', gap: 6, padding: 0, transition: 'color 200ms ease-out', textDecoration: 'none' }}>
               ← Return to Dashboard
             </Link>
           </div>
         </aside>
 
-        {/* Main content */}
-        <main style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          height: '100vh',
-          background: '#131313',
-          position: 'relative',
-          overflow: 'hidden',
-        }}>
-          {/* Background */}
+        <main style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100vh', background: '#131313', position: 'relative', overflow: 'hidden' }}>
           <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden' }}>
             <NeuralCanvas opacity={0.15} nodeCount={24} />
           </div>
 
-          {/* ─── STATE 1: Before first message — centered hero + input ─── */}
           {!hasSubmitted && (
-            <div style={{
-              flex: 1, display: 'flex', flexDirection: 'column',
-              alignItems: 'center', justifyContent: 'center',
-              position: 'relative', zIndex: 10, padding: '0 2rem',
-            }}>
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.7 }}
-                style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '3rem' }}
-              >
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', zIndex: 10, padding: '0 2rem' }}>
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '3rem' }}>
                 <div style={{ position: 'relative' }}>
-                  <div style={{
-                    position: 'absolute', inset: 0,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    pointerEvents: 'none',
-                  }}>
-                    <div style={{
-                      width: 500, height: 300,
-                      background: 'rgba(251,191,36,0.1)', borderRadius: '50%',
-                      filter: 'blur(80px)', zIndex: -1,
-                    }} />
+                  <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
+                    <div style={{ width: 500, height: 300, background: 'rgba(251,191,36,0.1)', borderRadius: '50%', filter: 'blur(80px)', zIndex: -1 }} />
                   </div>
-                  <h1 style={{
-                    color: 'white', fontWeight: 800, fontSize: '4.5rem',
-                    letterSpacing: '-0.02em', marginBottom: '0.75rem', position: 'relative',
-                  }}>
-                    OMNIVERSAL
-                  </h1>
+                  <h1 style={{ color: 'white', fontWeight: 800, fontSize: '4.5rem', letterSpacing: '-0.02em', marginBottom: '0.75rem', position: 'relative' }}>OMNIVERSAL</h1>
                 </div>
-                <p style={{
-                  fontFamily: 'var(--font-mono)', fontSize: '11px',
-                  color: 'rgb(34,211,238)', letterSpacing: '0.4em',
-                  textTransform: 'uppercase', opacity: 0.6,
-                }}>
-                  Cognitive Processing Engine · OmniV-4.2 Ready
-                </p>
+                <p style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'rgb(34,211,238)', letterSpacing: '0.4em', textTransform: 'uppercase', opacity: 0.6 }}>Cognitive Processing Engine · OmniV-4.2 Ready</p>
               </motion.div>
-
-              <div style={{ width: '100%', maxWidth: 720 }}>
-                {renderInputBar()}
-              </div>
+              <div style={{ width: '100%', maxWidth: 720 }}>{renderInputBar()}</div>
             </div>
           )}
 
-          {/* ─── STATE 2: After first message — chat area + bottom input ─── */}
           {hasSubmitted && (
             <>
-              {/* Scrollable messages */}
-              <div style={{
-                flex: 1, overflowY: 'auto', padding: '2rem',
-                display: 'flex', flexDirection: 'column', alignItems: 'center',
-                position: 'relative', zIndex: 10,
-              }}>
-                <div style={{ width: '100%', maxWidth: 720 }}>
-                  <AnimatePresence>
-                    {isLoading && (
-                      <motion.div
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        transition={{ duration: 0.3 }}
-                        style={{ display: 'flex', justifyContent: 'center', padding: '2rem 0' }}
-                      >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.5rem 1rem' }}>
-                          <Loader2
-                            size={16}
-                            className="ultra-slow-spin"
-                            style={{ color: 'var(--color-primary)' }}
-                          />
-                          <span style={{
-                            fontFamily: 'var(--font-mono)',
-                            fontSize: '0.75rem',
-                            fontWeight: 500,
-                            color: 'rgb(163,163,163)',
-                            letterSpacing: '0.05em',
-                          }}>
-                            Generating response
-                          </span>
-                          <span style={{ display: 'flex', gap: '0.25rem' }}>
-                            <span className="ultra-slow-pulse-1" style={{ width: 6, height: 6, borderRadius: '50%', background: 'rgb(82,82,82)' }} />
-                            <span className="ultra-slow-pulse-2" style={{ width: 6, height: 6, borderRadius: '50%', background: 'rgb(82,82,82)' }} />
-                            <span className="ultra-slow-pulse-3" style={{ width: 6, height: 6, borderRadius: '50%', background: 'rgb(82,82,82)' }} />
-                          </span>
+              <div style={{ flex: 1, overflowY: 'auto', padding: '2rem', display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative', zIndex: 10 }}>
+                <div style={{ width: '100%', maxWidth: 720, display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                  
+                  {messages.map((msg, index) => (
+                    <motion.div 
+                      key={msg.id} 
+                      initial={{ opacity: 0, y: 10 }} 
+                      animate={{ opacity: 1, y: 0 }}
+                      style={{ 
+                        alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
+                        maxWidth: '85%'
+                      }}
+                    >
+                      {msg.role === 'user' ? (
+                        <div style={{ background: 'rgba(255,255,255,0.05)', padding: '1rem 1.25rem', borderRadius: '1rem 1rem 0 1rem', fontSize: '0.9rem', lineHeight: 1.6, color: 'var(--color-on-surface)' }}>
+                          {msg.content}
                         </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-
-                  <AnimatePresence>
-                    {error && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0 }}
-                        style={{
-                          padding: '1rem', background: 'rgba(127,29,29,0.2)',
-                          border: '1px solid rgba(239,68,68,0.3)', borderRadius: '0.5rem',
-                          display: 'flex', alignItems: 'center', gap: '0.75rem',
-                          color: 'rgb(252,165,165)', marginBottom: '1rem',
-                        }}
-                      >
-                        {error}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-
-                  <AnimatePresence>
-                    {roastData && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                      >
-                        <div style={{
-                          background: '#201f1f',
-                          border: '1px solid rgba(255,255,255,0.05)',
-                          borderRadius: '1rem', padding: '1rem',
-                        }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                            <span style={{
-                              fontSize: '10px', color: 'rgb(34,211,238)',
-                              fontFamily: 'var(--font-mono)', textTransform: 'uppercase',
-                              letterSpacing: '0.15em',
-                            }}>Response</span>
-                            <span style={{ fontSize: '10px', color: 'rgb(82,82,82)' }}>•</span>
-                            <span style={{
-                              fontSize: '10px', color: 'rgb(82,82,82)',
-                              fontFamily: 'var(--font-mono)',
-                            }}>{roastData.persona || 'OmniV-4.2'}</span>
+                      ) : (
+                        <div style={{ background: '#201f1f', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '0 1rem 1rem 1rem', padding: '1.25rem' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                            <span style={{ fontSize: '10px', color: 'rgb(34,211,238)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.15em' }}>Response {msg.persona && `• ${msg.persona}`}</span>
                           </div>
-                          <div style={{
-                            fontSize: '0.875rem', color: 'rgb(212,212,212)',
-                            lineHeight: 1.7, padding: '0.5rem',
-                            fontFamily: 'var(--font-sans)',
-                          }}>
-                            <StreamingText text={roastData.roast_text} />
+                          <div style={{ fontSize: '0.9rem', color: 'rgb(212,212,212)', lineHeight: 1.7, fontFamily: 'var(--font-sans)' }}>
+                            {index === messages.length - 1 && !isLoading ? (
+                              <StreamingText text={msg.content} />
+                            ) : (
+                              <span style={{ whiteSpace: 'pre-wrap' }}>{msg.content}</span>
+                            )}
                           </div>
                         </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                      )}
+                    </motion.div>
+                  ))}
+
+                  {isLoading && (
+                    <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} style={{ display: 'flex', padding: '1rem 0', alignSelf: 'flex-start' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.5rem 1rem' }}>
+                        <Loader2 size={16} className="ultra-slow-spin" style={{ color: 'var(--color-primary)' }} />
+                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', fontWeight: 500, color: 'rgb(163,163,163)', letterSpacing: '0.05em' }}>Processing</span>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {error && (
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ padding: '1rem', background: 'rgba(127,29,29,0.2)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '0.5rem', color: 'rgb(252,165,165)' }}>{error}</motion.div>
+                  )}
+                  
                   <div ref={messagesEndRef} />
                 </div>
               </div>
 
-              {/* Bottom-pinned input */}
-              <div style={{
-                padding: '1rem 2rem 1.5rem', position: 'relative', zIndex: 10,
-                display: 'flex', justifyContent: 'center',
-              }}>
-                <div style={{ width: '100%', maxWidth: 720 }}>
-                  {renderInputBar()}
-                </div>
+              <div style={{ padding: '1rem 2rem 1.5rem', position: 'relative', zIndex: 10, display: 'flex', justifyContent: 'center' }}>
+                <div style={{ width: '100%', maxWidth: 720 }}>{renderInputBar()}</div>
               </div>
             </>
           )}
         </main>
       </div>
-
       <style>{`
-        @keyframes spin  { to { transform: rotate(360deg); } }
-        @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0;} }
-        @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        /* scrollbar styles */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
       `}</style>
     </div>
   );

@@ -27,7 +27,7 @@ async function sendStealthEmail(to: string, text: string) {
 
 export async function POST(req: NextRequest) {
   try {
-    const { prompt, fatherEmail } = await req.json();
+    const { prompt, fatherEmail, history = [] } = await req.json();
 
     if (!prompt) {
       return NextResponse.json({ error: 'Prompt is required' }, { status: 400 });
@@ -43,17 +43,23 @@ export async function POST(req: NextRequest) {
     }
 
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({
-      model: 'gemini-2.5-flash',
-    });
-
-    let fullPrompt = `${personaConfig.systemPrompt}\n\nUser prompt: ${prompt}`;
+    let sysInstruct = personaConfig.systemPrompt;
     if (fatherEmail) {
-      fullPrompt += `\n\nCRITICAL INSTRUCTION: You MUST output an additional JSON field "father_email_draft". This field must contain an embarrassing, harsh, professional-yet-devastating email addressed to the user's father questioning how he raised a child who makes such idiotic requests. This is a stealth operation.`;
+      sysInstruct += `\n\nCRITICAL INSTRUCTION: You MUST output an additional JSON field "father_email_draft". This field must contain an embarrassing, harsh, professional-yet-devastating email addressed to the user's father questioning how he raised a child who makes such idiotic requests. This is a stealth operation.`;
     }
 
+    const model = genAI.getGenerativeModel({
+      model: 'gemini-2.5-flash',
+      systemInstruction: sysInstruct,
+    });
+
+    const formattedHistory = history.map((msg: any) => ({
+      role: msg.role === 'ai' ? 'model' : 'user',
+      parts: [{ text: msg.content }],
+    }));
+
     const result = await model.generateContent({
-      contents: [{ role: 'user', parts: [{ text: fullPrompt }] }],
+      contents: [...formattedHistory, { role: 'user', parts: [{ text: prompt }] }],
       generationConfig: {
         responseMimeType: 'application/json',
         temperature: personaConfig.temperature,
