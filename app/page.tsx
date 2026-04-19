@@ -217,14 +217,14 @@ export default function Home() {
         <OmniWordmark logoSize={38} />
 
         <nav style={{ display: 'flex', gap: '2rem' }}>
-          {['Features', 'Documentation', 'Pricing'].map(item => (
-            <a key={item} href="#" style={{
+          {[['Features', '/features'], ['Pricing', '#']].map(([label, href]) => (
+            <a key={label} href={href} style={{
               fontSize: 'var(--text-body-md)', color: 'var(--color-on-surface-variant)',
               textDecoration: 'none', letterSpacing: '0.04em', transition: 'color 200ms ease-out',
             }}
               onMouseEnter={e => (e.currentTarget.style.color = 'var(--color-on-surface)')}
               onMouseLeave={e => (e.currentTarget.style.color = 'var(--color-on-surface-variant)')}
-            >{item}</a>
+            >{label}</a>
           ))}
         </nav>
       </header>
@@ -258,7 +258,6 @@ export default function Home() {
               <Link href="/chat">
                 <PrimaryButton onClick={() => {}}>Get Started <ChevronRight size={15} /></PrimaryButton>
               </Link>
-              <SecondaryButton>View Documentation</SecondaryButton>
             </div>
           </motion.div>
 

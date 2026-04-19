@@ -104,6 +104,88 @@ function OmniWordmark({ logoSize = 40 }: { logoSize?: number }) {
   );
 }
 
+function CircleLoader() {
+  const balls = [
+    { color: '#ff6347', i: 12, d: '3.4s' },
+    { color: '#00ced1', i: 18, d: '6.1s' },
+    { color: '#adff2f', i: 10, d: '2.9s' },
+    { color: '#9370db', i: 16, d: '7.8s' },
+    { color: '#ff1493', i: 14, d: '4.6s' },
+    { color: '#00bfff', i: 11, d: '3.3s' },
+    { color: '#7fff00', i: 17, d: '5.5s' },
+    { color: '#dc143c', i: 13, d: '6.7s' },
+    { color: '#8a2be2', i: 19, d: '8.2s' },
+    { color: '#48d1cc', i: 15, d: '9.1s' },
+    { color: '#ff4500', i: 14, d: '4.2s' },
+    { color: '#00ff7f', i: 16, d: '5.8s' },
+    { color: '#ba55d3', i: 10, d: '7.3s' },
+    { color: '#1e90ff', i: 18, d: '6.4s' },
+    { color: '#ffa500', i: 20, d: '10s' },
+    { color: '#ff69b4', i: 12, d: '3.7s' },
+    { color: '#00fa9a', i: 11, d: '2.6s' },
+    { color: '#9400d3', i: 17, d: '6.9s' },
+    { color: '#ffb6c1', i: 13, d: '5.3s' },
+    { color: '#20b2aa', i: 19, d: '7.7s' },
+  ];
+
+  const size = 250;
+
+  return (
+    <div style={{
+      width: `${size}px`,
+      height: `${size}px`,
+      position: 'relative',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+    }}>
+      {balls.map((ball, idx) => (
+        <div
+          key={idx}
+          style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            width: `${size + ball.i}px`,
+            height: `${size + ball.i}px`,
+            marginLeft: `${-(size + ball.i) / 2}px`,
+            marginTop: `${-(size + ball.i) / 2}px`,
+            backgroundColor: ball.color,
+            borderRadius: '50%',
+            mixBlendMode: 'hard-light',
+            filter: 'blur(55px)',
+            animation: `smoothRotate ${ball.d} cubic-bezier(0.4, 0, 0.6, 1) infinite`,
+            animationDirection: idx % 2 === 1 ? 'reverse' : 'normal',
+            willChange: 'transform',
+            transformOrigin: 'center',
+          } as React.CSSProperties}
+        />
+      ))}
+      <style>{`
+        @keyframes smoothRotate {
+          0% {
+            transform: rotate(0deg);
+            opacity: 0.75;
+          }
+          25% {
+            opacity: 0.9;
+          }
+          50% {
+            opacity: 1;
+          }
+          75% {
+            opacity: 0.9;
+          }
+          100% {
+            transform: rotate(360deg);
+            opacity: 0.75;
+          }
+        }
+      `}</style>
+    </div>
+  );
+}
+
 function ThinkingPanel({ steps }: { steps: ThinkStep[] }) {
   return (
     <motion.div
@@ -321,125 +403,127 @@ export default function ChatPage() {
 
         {/* Main Content Area */}
         <main className="w-full min-h-screen bg-[#131313] flex flex-col items-center justify-center relative px-8 py-12">
-  {/* Subtle Ambient Lighting */}
-  <div className="absolute inset-0 pointer-events-none overflow-hidden">
-    <NeuralCanvas opacity={0.15} nodeCount={24} />
-    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-cyan-900/5 rounded-full blur-[120px]"></div>
-  </div>
-
-<motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }} className="w-full max-w-[800px] flex flex-col gap-10 relative z-10">
-      {/* Centered Logo with Golden Glow */}
-      <div className="mb-40 flex flex-col items-center relative">
-      {/* Golden Glow Background */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <div className="w-[500px] h-[300px] bg-amber-400/10 rounded-full blur-[80px] -z-10"></div>
-      </div>
-      
-      <h1 className="text-white font-headline font-extrabold text-7xl tracking-tight mb-3 relative">
-        OMNIVERSAL
-      </h1>
-      <p className="font-['Geist_Mono'] text-[11px] text-cyan-400 tracking-[0.4em] uppercase opacity-60">Cognitive Processing Engine · Session 4F2A · OmniV-4.2 Ready</p>
-    </div>
-
-    {/* Form Section */}
-<form onSubmit={handleSubmit} className="w-full mt-16 relative mx-2">
-      {/* Input + Button */}
-      <div className="flex items-end gap-3">
-        <div className="flex-1 relative">
-          <textarea
-            ref={textareaRef}
-            value={prompt}
-            onChange={(e) => {
-              setPrompt(e.target.value);
-              handleInput(e);
-              e.target.style.height = 'auto';
-              e.target.style.height = Math.min(e.target.scrollHeight, 200) + 'px';
-            }}
-            rows={1}
-            className="w-full bg-[#201f1f] rounded-3xl px-6 py-3 pr-16 text-on-surface placeholder:text-neutral-600 font-headline text-sm resize-none overflow-hidden transition-colors focus:outline-none focus:bg-[#2a2929]"
-            placeholder="Enter your query..."
-            style={{
-              minHeight: '44px',
-              maxHeight: '200px',
-              overflowY: 'auto',
-              paddingTop: '12px',
-              paddingLeft: '20px',
-              paddingRight: '20px',
-              paddingBottom: '12px'
-            }}
-          />
-          <span className="absolute bottom-2 right-4 text-[8px] text-neutral-600 tabular-nums">
-            {prompt.length}/4096
-          </span>
-        </div>
-        <button
-          type="submit"
-          disabled={!prompt.trim() || isLoading}
-          className="h-[45px] w-[48px] flex items-center justify-center bg-cyan-400 text-[#001f24] rounded-2xl disabled:opacity-50 disabled:cursor-not-allowed hover:bg-cyan-300 active:scale-95 transition-all"
-          aria-label="Send message"
-        >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-          </svg>
-        </button>
-      </div>
-
-      {/* Status Indicator (centered + smooth) */}
-      <div className="mt-6 flex justify-center">
-        <div
-          className={`px-4 py-2 rounded-full font-['Geist_Mono'] text-[10px] font-bold tracking-widest uppercase flex items-center gap-2 transition-all duration-300 ${
-            isLoading
-              ? 'bg-cyan-400/20 text-cyan-400'
-              : roastData
-              ? 'bg-green-400/20 text-green-400'
-              : 'bg-white/5 text-neutral-500'
-          }`}
-        >
-        </div>
-      </div>
-    </form>
-
-    {/* Error Message */}
-    <AnimatePresence>
-      {error && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0 }}
-          className="mt-8 p-4 bg-red-900/20 border border-red-500/30 rounded-lg flex items-center gap-3 text-red-300"
-        >
-          <span className="material-symbols-outlined text-sm">error</span>
-          {error}
-        </motion.div>
-      )}
-    </AnimatePresence>
-
-    {/* Response */}
-    <AnimatePresence>
-      {roastData && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mt-8"
-        >
-          <div className="bg-[#201f1f] border border-white/5 rounded-2xl p-6" 
-            style={{
-              padding: '14px'
-            }}>
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-[10px] text-cyan-400 font-['Geist_Mono'] uppercase tracking-widest">Response</span>
-              <span className="text-[10px] text-neutral-600">•</span>
-              <span className="text-[10px] text-neutral-600 font-['Geist_Mono']">OmniV-4.2</span>
-            </div>
-            <div className="text-sm text-neutral-300 leading-relaxed p-2" style={{ fontFamily: 'var(--font-sans)' }}>
-              <StreamingText text={roastData.output} />
-            </div>
+          {/* Subtle Ambient Lighting */}
+          <div className="absolute inset-0 pointer-events-none overflow-hidden">
+            <NeuralCanvas opacity={0.15} nodeCount={24} />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-cyan-900/5 rounded-full blur-[120px]"></div>
           </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  </motion.div>
-</main>
+
+          <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }} className="w-full max-w-[800px] flex flex-col gap-5 relative z-10">
+                {/* Centered Logo with Golden Glow */}
+              <div className="mb-40 flex flex-col items-center gap-3 relative">
+                {/* Golden Glow Background */}
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div className="w-[500px] h-[300px] bg-amber-400/10 rounded-full blur-[80px] -z-10"></div>
+                </div>
+                
+                <h1 className="text-white font-headline font-extrabold text-7xl tracking-tight mb-20 relative">
+                  OMNIVERSAL
+                </h1>
+                <p className="font-['Geist_Mono'] mt-16 text-[11px] text-cyan-400 tracking-[0.4em] uppercase opacity-60">Cognitive Processing Engine · Session 4F2A · OmniV-4.2 Ready</p>
+              </div>
+
+              {/* Form Section */}
+              <form onSubmit={handleSubmit} className="w-full relative mx-2">
+                    {/* Input + Button */}
+                    <div className="flex items-end gap-3 justify-center">
+                      <div className="flex-1 relative">
+                        <textarea
+                          ref={textareaRef}
+                          value={prompt}
+                          onChange={(e) => {
+                            setPrompt(e.target.value);
+                            handleInput(e);
+                            e.target.style.height = 'auto';
+                            e.target.style.height = Math.min(e.target.scrollHeight, 200) + 'px';
+                          }}
+                          rows={1}
+                          className="w-full bg-[#201f1f] rounded-3xl px-6 py-3 pr-16 text-on-surface placeholder:text-neutral-600 font-headline text-sm resize-none overflow-hidden transition-colors focus:outline-none focus:bg-[#2a2929]"
+                          placeholder="Enter your query..."
+                          style={{
+                            minHeight: '44px',
+                            maxHeight: '200px',
+                            overflowY: 'auto',
+                            paddingTop: '12px',
+                            paddingLeft: '20px',
+                            paddingRight: '20px',
+                            paddingBottom: '12px'
+                          }}
+                        />
+                        <span className="absolute bottom-2 right-4 text-[8px] text-neutral-600 tabular-nums">
+                          {prompt.length}/4096
+                        </span>
+                      </div>
+                      <button
+                        type="submit"
+                        disabled={!prompt.trim() || isLoading}
+                        className="h-[55px] w-[54px] flex items-center justify-center bg-cyan-400 text-[#001f24] rounded-2xl disabled:opacity-50 disabled:cursor-not-allowed hover:bg-cyan-300 active:scale-95 transition-all"
+                        aria-label="Send message"
+                      >
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                        </svg>
+                      </button>
+                    </div>
+
+              {/* Status Indicator (centered + smooth) */}
+              <div className="mt-6 flex justify-center">
+                {isLoading ? (
+                  <CircleLoader />
+                ) : (
+                  <div
+                    className={`px-4 py-2 rounded-full font-['Geist_Mono'] text-[10px] font-bold tracking-widest uppercase flex items-center gap-2 transition-all duration-300 ${
+                      roastData
+                        ? 'bg-green-400/20 text-green-400'
+                        : 'bg-white/5 text-neutral-500'
+                    }`}
+                  >
+                  </div>
+                )}
+              </div>
+            </form>
+
+            {/* Error Message */}
+            <AnimatePresence>
+              {error && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  className="mt-8 p-4 bg-red-900/20 border border-red-500/30 rounded-lg flex items-center gap-3 text-red-300"
+                >
+                  <span className="material-symbols-outlined text-sm">error</span>
+                  {error}
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Response */}
+            <AnimatePresence>
+              {roastData && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-8"
+                >
+                  <div className="bg-[#201f1f] border border-white/5 rounded-2xl p-6" 
+                    style={{
+                      padding: '14px'
+                    }}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-[10px] text-cyan-400 font-['Geist_Mono'] uppercase tracking-widest">Response</span>
+                      <span className="text-[10px] text-neutral-600">•</span>
+                      <span className="text-[10px] text-neutral-600 font-['Geist_Mono']">OmniV-4.2</span>
+                    </div>
+                    <div className="text-sm text-neutral-300 leading-relaxed p-2" style={{ fontFamily: 'var(--font-sans)' }}>
+                      <StreamingText text={roastData.output} />
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+        </main>
 
       </div>
 
