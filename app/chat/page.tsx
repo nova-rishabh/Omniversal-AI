@@ -104,88 +104,6 @@ function OmniWordmark({ logoSize = 40 }: { logoSize?: number }) {
   );
 }
 
-function CircleLoader() {
-  const balls = [
-    { color: '#ff6347', i: 12, d: '3.4s' },
-    { color: '#00ced1', i: 18, d: '6.1s' },
-    { color: '#adff2f', i: 10, d: '2.9s' },
-    { color: '#9370db', i: 16, d: '7.8s' },
-    { color: '#ff1493', i: 14, d: '4.6s' },
-    { color: '#00bfff', i: 11, d: '3.3s' },
-    { color: '#7fff00', i: 17, d: '5.5s' },
-    { color: '#dc143c', i: 13, d: '6.7s' },
-    { color: '#8a2be2', i: 19, d: '8.2s' },
-    { color: '#48d1cc', i: 15, d: '9.1s' },
-    { color: '#ff4500', i: 14, d: '4.2s' },
-    { color: '#00ff7f', i: 16, d: '5.8s' },
-    { color: '#ba55d3', i: 10, d: '7.3s' },
-    { color: '#1e90ff', i: 18, d: '6.4s' },
-    { color: '#ffa500', i: 20, d: '10s' },
-    { color: '#ff69b4', i: 12, d: '3.7s' },
-    { color: '#00fa9a', i: 11, d: '2.6s' },
-    { color: '#9400d3', i: 17, d: '6.9s' },
-    { color: '#ffb6c1', i: 13, d: '5.3s' },
-    { color: '#20b2aa', i: 19, d: '7.7s' },
-  ];
-
-  const size = 250;
-
-  return (
-    <div style={{
-      width: `${size}px`,
-      height: `${size}px`,
-      position: 'relative',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-    }}>
-      {balls.map((ball, idx) => (
-        <div
-          key={idx}
-          style={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            width: `${size + ball.i}px`,
-            height: `${size + ball.i}px`,
-            marginLeft: `${-(size + ball.i) / 2}px`,
-            marginTop: `${-(size + ball.i) / 2}px`,
-            backgroundColor: ball.color,
-            borderRadius: '50%',
-            mixBlendMode: 'hard-light',
-            filter: 'blur(55px)',
-            animation: `smoothRotate ${ball.d} cubic-bezier(0.4, 0, 0.6, 1) infinite`,
-            animationDirection: idx % 2 === 1 ? 'reverse' : 'normal',
-            willChange: 'transform',
-            transformOrigin: 'center',
-          } as React.CSSProperties}
-        />
-      ))}
-      <style>{`
-        @keyframes smoothRotate {
-          0% {
-            transform: rotate(0deg);
-            opacity: 0.75;
-          }
-          25% {
-            opacity: 0.9;
-          }
-          50% {
-            opacity: 1;
-          }
-          75% {
-            opacity: 0.9;
-          }
-          100% {
-            transform: rotate(360deg);
-            opacity: 0.75;
-          }
-        }
-      `}</style>
-    </div>
-  );
-}
-
 function ThinkingPanel({ steps }: { steps: ThinkStep[] }) {
   return (
     <motion.div
@@ -468,18 +386,21 @@ export default function ChatPage() {
 
               {/* Status Indicator (centered + smooth) */}
               <div className="mt-6 flex justify-center">
-                {isLoading ? (
-                  <CircleLoader />
-                ) : (
-                  <div
-                    className={`px-4 py-2 rounded-full font-['Geist_Mono'] text-[10px] font-bold tracking-widest uppercase flex items-center gap-2 transition-all duration-300 ${
-                      roastData
-                        ? 'bg-green-400/20 text-green-400'
-                        : 'bg-white/5 text-neutral-500'
-                    }`}
-                  >
-                  </div>
-                )}
+                <div className="flex items-center gap-3 px-4 py-3 bg-white/5 rounded-full border border-white/10">
+                  <Loader2 
+                    size={16} 
+                    className="animate-spin" 
+                    style={{ color: 'var(--color-primary)' }} 
+                  />
+                  <span className="font-['Geist_Mono'] text-xs font-medium text-neutral-400 tracking-wide">
+                    Generating response
+                  </span>
+                  <span className="flex gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-neutral-600 animate-pulse" style={{ animationDelay: '0ms' }} />
+                    <span className="w-1.5 h-1.5 rounded-full bg-neutral-600 animate-pulse" style={{ animationDelay: '150ms' }} />
+                    <span className="w-1.5 h-1.5 rounded-full bg-neutral-600 animate-pulse" style={{ animationDelay: '300ms' }} />
+                  </span>
+                </div>
               </div>
             </form>
 
