@@ -44,10 +44,10 @@ export async function POST(req: NextRequest) {
     try {
       parsed = JSON.parse(text);
     } catch {
-      parsed = { roast_text: text, output: text };
+      parsed = { roast_text: text };
     }
 
-    const roastText = parsed.roast_text || parsed.output || text;
+    const roastText = parsed.roast_text || text;
 
     if (!roastText) {
       return NextResponse.json({ error: 'No response generated' }, { status: 500 });
@@ -57,7 +57,6 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       roast_text: roastText,
-      output: parsed.output || roastText,
       audio_available: audioAvailable,
       voiceId: personaConfig.voiceId,
       persona: personaConfig.name,

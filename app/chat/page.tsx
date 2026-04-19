@@ -63,7 +63,7 @@ function NeuralCanvas({ opacity = 0.15, nodeCount = 20 }: { opacity?: number; no
   return <canvas ref={canvasRef} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }} />;
 }
 
-type RoastData = { output: string; roast_text: string; audio_available: boolean; voiceId?: string; persona?: string };
+type RoastData = { roast_text: string; audio_available: boolean; voiceId?: string; persona?: string };
 type ThinkStep = { id: number; label: string; status: 'pending' | 'running' | 'done' };
 
 const THINK_STEPS: Omit<ThinkStep, 'status'>[] = [
@@ -625,7 +625,7 @@ export default function ChatPage() {
                             lineHeight: 1.7, padding: '0.5rem',
                             fontFamily: 'var(--font-sans)',
                           }}>
-                            <StreamingText text={roastData.output} />
+                            <StreamingText text={roastData.roast_text} />
                           </div>
                         </div>
                       </motion.div>
