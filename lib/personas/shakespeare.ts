@@ -116,7 +116,7 @@ USE BRAINROT SLANG FR FR NO CAP:
 Return ONLY valid JSON - no markdown, no code, no explanation:
 {"roast_text":"Your 2-3 sentence roast here"}
 `,
-  voiceId: 'eRcsJdPMOM0mtGC03ul7',
+  voiceId: 'DicKhqTSSypNTAkYn5aN',
   temperature: 1.0,
 };
 
@@ -191,8 +191,8 @@ Vagueness is a leadership failure. Name it as such.
 Return ONLY valid JSON - no markdown, no code, no explanation:
 {"roast_text":"Your 2-3 sentence roast here"}
 `,
-  voiceId: 'k1smwybPgJKo52uEOuQK',
-  
+  voiceId: 'BVZU0YqU8el8gnkp4cKI',
+
   temperature: 0.88,
 };
 
