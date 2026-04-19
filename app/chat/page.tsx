@@ -63,8 +63,8 @@ function NeuralCanvas({ opacity = 0.15, nodeCount = 20 }: { opacity?: number; no
   return <canvas ref={canvasRef} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }} />;
 }
 
-type RoastData  = { output: string; roast_text: string; audio_available: boolean };
-type ThinkStep  = { id: number; label: string; status: 'pending' | 'running' | 'done' };
+type RoastData = { output: string; roast_text: string; audio_available: boolean; voiceId?: string; persona?: string };
+type ThinkStep = { id: number; label: string; status: 'pending' | 'running' | 'done' };
 
 const THINK_STEPS: Omit<ThinkStep, 'status'>[] = [
   { id: 1, label: 'Tokenising input' },
@@ -104,134 +104,7 @@ function OmniWordmark({ logoSize = 40 }: { logoSize?: number }) {
   );
 }
 
-function CircleLoader() {
-  const balls = [
-    { color: '#ff6347', i: 12, d: '3.4s' },
-    { color: '#00ced1', i: 18, d: '6.1s' },
-    { color: '#adff2f', i: 10, d: '2.9s' },
-    { color: '#9370db', i: 16, d: '7.8s' },
-    { color: '#ff1493', i: 14, d: '4.6s' },
-    { color: '#00bfff', i: 11, d: '3.3s' },
-    { color: '#7fff00', i: 17, d: '5.5s' },
-    { color: '#dc143c', i: 13, d: '6.7s' },
-    { color: '#8a2be2', i: 19, d: '8.2s' },
-    { color: '#48d1cc', i: 15, d: '9.1s' },
-    { color: '#ff4500', i: 14, d: '4.2s' },
-    { color: '#00ff7f', i: 16, d: '5.8s' },
-    { color: '#ba55d3', i: 10, d: '7.3s' },
-    { color: '#1e90ff', i: 18, d: '6.4s' },
-    { color: '#ffa500', i: 20, d: '10s' },
-    { color: '#ff69b4', i: 12, d: '3.7s' },
-    { color: '#00fa9a', i: 11, d: '2.6s' },
-    { color: '#9400d3', i: 17, d: '6.9s' },
-    { color: '#ffb6c1', i: 13, d: '5.3s' },
-    { color: '#20b2aa', i: 19, d: '7.7s' },
-  ];
-
-  const size = 250;
-
-  return (
-    <div style={{
-      width: `${size}px`,
-      height: `${size}px`,
-      position: 'relative',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-    }}>
-      {balls.map((ball, idx) => (
-        <div
-          key={idx}
-          style={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            width: `${size + ball.i}px`,
-            height: `${size + ball.i}px`,
-            marginLeft: `${-(size + ball.i) / 2}px`,
-            marginTop: `${-(size + ball.i) / 2}px`,
-            backgroundColor: ball.color,
-            borderRadius: '50%',
-            mixBlendMode: 'hard-light',
-            filter: 'blur(55px)',
-            animation: `smoothRotate ${ball.d} cubic-bezier(0.4, 0, 0.6, 1) infinite`,
-            animationDirection: idx % 2 === 1 ? 'reverse' : 'normal',
-            willChange: 'transform',
-            transformOrigin: 'center',
-          } as React.CSSProperties}
-        />
-      ))}
-      <style>{`
-        @keyframes smoothRotate {
-          0% {
-            transform: rotate(0deg);
-            opacity: 0.75;
-          }
-          25% {
-            opacity: 0.9;
-          }
-          50% {
-            opacity: 1;
-          }
-          75% {
-            opacity: 0.9;
-          }
-          100% {
-            transform: rotate(360deg);
-            opacity: 0.75;
-          }
-        }
-      `}</style>
-    </div>
-  );
-}
-
-function ThinkingPanel({ steps }: { steps: ThinkStep[] }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, height: 0 }}
-      animate={{ opacity: 1, height: 'auto' }}
-      exit={{ opacity: 0, height: 0 }}
-      style={{ overflow: 'hidden' }}
-    >
-      <div style={{
-        marginTop: '1.5rem',
-        background: 'var(--color-surface-container)',
-        borderRadius: 'var(--radius-lg)',
-        padding: '1.25rem 1.5rem',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1rem' }}>
-          <TerminalSquare size={13} color="var(--color-primary)" />
-          <span className="label-sm">Inference Trace</span>
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-          {steps.map(step => (
-            <div key={step.id} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <div style={{ width: 16, flexShrink: 0, display: 'flex', justifyContent: 'center' }}>
-                {step.status === 'done'    && <CheckCircle2 size={13} color="var(--color-secondary)" />}
-                {step.status === 'running' && <Loader2 size={13} color="var(--color-primary)" style={{ animation: 'spin 1s linear infinite' }} />}
-                {step.status === 'pending' && <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--color-outline-variant)', margin: 'auto' }} />}
-              </div>
-              <span style={{
-                fontSize: 'var(--text-label-md)',
-                letterSpacing: '0.03em',
-                color: step.status === 'pending' ? 'var(--color-outline-variant)'
-                     : step.status === 'running' ? 'var(--color-primary)'
-                     : 'var(--color-on-surface-variant)',
-                transition: 'color 200ms ease-out',
-              }}>
-                {step.label}
-              </span>
-              {step.status === 'done' && (
-                <span style={{ marginLeft: 'auto', fontSize: 'var(--text-label-sm)', color: 'var(--color-secondary)', letterSpacing: '0.06em' }}>OK</span>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
-    </motion.div>
-  );
-}
+/* Loading indicator is now inline using ultra-slow-spin classes from globals.css */
 
 function StreamingText({ text }: { text: string }) {
   const [visible, setVisible] = useState('');
@@ -253,40 +126,50 @@ function StreamingText({ text }: { text: string }) {
   );
 }
 
-function useLiveMetric(base: number, variance = 4, ms = 2200) {
-  const [val, setVal] = useState(base);
-  useEffect(() => {
-    const id = setInterval(
-      () => setVal(base + Math.round((Math.random() - 0.5) * variance * 2)),
-      ms + Math.random() * 800,
-    );
-    return () => clearInterval(id);
-  }, [base, variance, ms]);
-  return val;
-}
+/* ═══════════════════════════════════════════════════════════════════════════
+   MAIN CHAT PAGE
+   ═══════════════════════════════════════════════════════════════════════════ */
 
 export default function ChatPage() {
-  const [prompt, setPrompt]           = useState('');
-  const [isLoading, setIsLoading]     = useState(false);
-  const [roastData, setRoastData]     = useState<RoastData | null>(null);
-  const [error, setError]             = useState<string | null>(null);
-  const [isPlaying, setIsPlaying]     = useState(false);
-  const [audioUrl, setAudioUrl]       = useState<string | null>(null);
-  const [audioProgress, setAudioProg] = useState(0);
-  const audioRef                      = useRef<HTMLAudioElement | null>(null);
-  const [audioDuration, setAudioDur]  = useState('--');
-  const [thinkSteps, setThinkSteps]   = useState<ThinkStep[]>([]);
-  const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const el = e.target;
-    el.style.height = "auto";
-    el.style.height = Math.min(el.scrollHeight, 160) + "px"; // max height
-  };
+  const [prompt, setPrompt]             = useState('');
+  const [isLoading, setIsLoading]       = useState(false);
+  const [roastData, setRoastData]       = useState<RoastData | null>(null);
+  const [error, setError]               = useState<string | null>(null);
+  const [isPlaying, setIsPlaying]       = useState(false);
+  const [audioUrl, setAudioUrl]         = useState<string | null>(null);
+  const audioRef                        = useRef<HTMLAudioElement | null>(null);
+  const [thinkSteps, setThinkSteps]     = useState<ThinkStep[]>([]);
+  const [hasSubmitted, setHasSubmitted] = useState(false);
 
-  const neuralLoad = useLiveMetric(73, 5);
-  const tokenEff   = useLiveMetric(91, 3);
-  const latency    = useLiveMetric(18, 4);
-  const textareaRef = useRef(null);
+  // Persona state
+  const [personas, setPersonas] = useState<{ key: string; name: string; description: string }[]>([]);
+  const [selectedPersona, setSelectedPersona] = useState('shakespeare');
+  const [personaDropdownOpen, setPersonaDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Fetch available personas on mount
+  useEffect(() => {
+    fetch('/api/personas')
+      .then(r => r.json())
+      .then(data => { if (Array.isArray(data) && data.length > 0) setPersonas(data); })
+      .catch(() => {});
+  }, []);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setPersonaDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  // Thinking steps animation
   useEffect(() => {
     if (!isLoading) { if (!roastData) setThinkSteps([]); return; }
     const initial: ThinkStep[] = THINK_STEPS.map(s => ({ ...s, status: 'pending' }));
@@ -306,24 +189,45 @@ export default function ChatPage() {
     if (roastData) setThinkSteps(prev => prev.map(s => ({ ...s, status: 'done' })));
   }, [roastData]);
 
+  // Scroll to bottom on new response
+  useEffect(() => {
+    if (roastData && messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [roastData]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!prompt.trim() || isLoading) return;
-    setIsLoading(true); setError(null); setRoastData(null);
+    setHasSubmitted(true);
+    setIsLoading(true); setError(null); setRoastData(null); setAudioUrl(null);
     try {
-      const res  = await fetch('/api/roast', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt }) });
+      const res = await fetch('/api/roast', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt, persona: selectedPersona }),
+      });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to process request');
-      setRoastData(data);
+
+      let resolvedAudioUrl: string | null = null;
       if (data.audio_available) {
-        const ar = await fetch('/api/roast-audio', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: data.roast_text }) });
-        if (ar.ok) { 
-          const blob = await ar.blob(); 
-          const url = URL.createObjectURL(blob);
-          setAudioUrl(url);
-          const audio = new Audio(url);
-          audio.play().catch(() => {});
+        const ar = await fetch('/api/roast-audio', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: data.roast_text, voiceId: data.voiceId }),
+        });
+        if (ar.ok) {
+          const blob = await ar.blob();
+          resolvedAudioUrl = URL.createObjectURL(blob);
         }
+      }
+
+      setRoastData(data);
+      if (resolvedAudioUrl) {
+        setAudioUrl(resolvedAudioUrl);
+        const audio = new Audio(resolvedAudioUrl);
+        audio.play().catch(() => {});
       }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -333,25 +237,205 @@ export default function ChatPage() {
     }
   };
 
-  const togglePlayback = () => {
-    if (!audioRef.current) return;
-    isPlaying ? audioRef.current.pause() : audioRef.current.play();
-    setIsPlaying(!isPlaying);
-  };
-
   useEffect(() => { return () => { if (audioUrl) URL.revokeObjectURL(audioUrl); }; }, [audioUrl]);
 
+  const activePersona = personas.find(p => p.key === selectedPersona);
+
+  /* ── Shared input bar (used in both centered + bottom positions) ──────── */
+  function renderInputBar() {
+    return (
+      <form onSubmit={handleSubmit} style={{ width: '100%' }}>
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          background: '#201f1f',
+          borderRadius: '1.5rem',
+          border: '1px solid rgba(255,255,255,0.06)',
+          transition: 'border-color 200ms',
+          position: 'relative',
+        }}>
+          {/* Textarea */}
+          <textarea
+            ref={textareaRef}
+            value={prompt}
+            onChange={(e) => {
+              setPrompt(e.target.value);
+              e.target.style.height = 'auto';
+              e.target.style.height = Math.min(e.target.scrollHeight, 200) + 'px';
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSubmit(e);
+              }
+            }}
+            rows={1}
+            placeholder="Enter your query..."
+            style={{
+              width: '100%',
+              background: 'transparent',
+              border: 'none',
+              outline: 'none',
+              resize: 'none',
+              color: 'var(--color-on-surface)',
+              fontSize: '0.875rem',
+              lineHeight: 1.6,
+              padding: '0.875rem 1.25rem',
+              minHeight: '44px',
+              maxHeight: '200px',
+              overflowY: 'auto',
+              fontFamily: 'inherit',
+            }}
+          />
+
+          {/* Bottom toolbar: persona switcher (left) + send button (right) */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '0.375rem 0.5rem 0.5rem 0.75rem',
+          }}>
+            {/* Persona switcher */}
+            <div ref={dropdownRef} style={{ position: 'relative' }}>
+              <button
+                type="button"
+                onClick={() => setPersonaDropdownOpen(!personaDropdownOpen)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.375rem',
+                  background: 'rgba(255,255,255,0.04)',
+                  border: '1px solid rgba(255,255,255,0.08)',
+                  borderRadius: '0.5rem',
+                  padding: '0.3rem 0.625rem',
+                  cursor: 'pointer',
+                  color: 'var(--color-on-surface-variant)',
+                  fontSize: '0.7rem',
+                  fontWeight: 600,
+                  letterSpacing: '0.04em',
+                  transition: 'all 200ms',
+                  fontFamily: 'inherit',
+                }}
+              >
+                <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--color-primary)', flexShrink: 0 }} />
+                {activePersona?.name || 'Shakespeare'}
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{
+                  transform: personaDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                  transition: 'transform 200ms',
+                }}>
+                  <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
+
+              {/* Dropdown */}
+              <AnimatePresence>
+                {personaDropdownOpen && personas.length > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 4, scale: 0.96 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 4, scale: 0.96 }}
+                    transition={{ duration: 0.15 }}
+                    style={{
+                      position: 'absolute',
+                      bottom: '100%',
+                      left: 0,
+                      marginBottom: '0.375rem',
+                      background: '#1a1a1a',
+                      border: '1px solid rgba(255,255,255,0.1)',
+                      borderRadius: '0.625rem',
+                      padding: '0.25rem',
+                      minWidth: '220px',
+                      boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+                      zIndex: 50,
+                    }}
+                  >
+                    {personas.map(p => (
+                      <button
+                        key={p.key}
+                        type="button"
+                        onClick={() => { setSelectedPersona(p.key); setPersonaDropdownOpen(false); }}
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          width: '100%',
+                          textAlign: 'left',
+                          padding: '0.5rem 0.75rem',
+                          borderRadius: '0.375rem',
+                          border: 'none',
+                          cursor: 'pointer',
+                          background: selectedPersona === p.key ? 'rgba(0,218,243,0.08)' : 'transparent',
+                          transition: 'background 150ms',
+                          fontFamily: 'inherit',
+                        }}
+                        onMouseEnter={e => { if (selectedPersona !== p.key) e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = selectedPersona === p.key ? 'rgba(0,218,243,0.08)' : 'transparent'; }}
+                      >
+                        <span style={{
+                          fontSize: '0.75rem',
+                          fontWeight: 600,
+                          color: selectedPersona === p.key ? 'var(--color-primary)' : 'var(--color-on-surface)',
+                        }}>
+                          {p.name}
+                        </span>
+                        <span style={{
+                          fontSize: '0.65rem',
+                          color: 'var(--color-on-surface-variant)',
+                          marginTop: '0.125rem',
+                        }}>
+                          {p.description}
+                        </span>
+                      </button>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Send button — upward arrow */}
+            <button
+              type="submit"
+              disabled={!prompt.trim() || isLoading}
+              style={{
+                width: 36,
+                height: 36,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: (!prompt.trim() || isLoading) ? 'rgba(255,255,255,0.06)' : 'rgb(34,211,238)',
+                color: (!prompt.trim() || isLoading) ? 'rgba(255,255,255,0.2)' : '#001f24',
+                borderRadius: '0.625rem',
+                border: 'none',
+                cursor: (!prompt.trim() || isLoading) ? 'not-allowed' : 'pointer',
+                transition: 'all 200ms',
+                flexShrink: 0,
+              }}
+              aria-label="Send message"
+            >
+              {isLoading ? (
+                <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} />
+              ) : (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="12" y1="19" x2="12" y2="5" />
+                  <polyline points="5 12 12 5 19 12" />
+                </svg>
+              )}
+            </button>
+          </div>
+        </div>
+      </form>
+    );
+  }
+
+  /* ── Render ───────────────────────────────────────────────────────────── */
   return (
     <div style={{ minHeight: '100vh', background: 'var(--color-surface)', color: 'var(--color-on-surface)' }}>
       <audio
         ref={audioRef} src={audioUrl || undefined}
         onEnded={() => setIsPlaying(false)}
-        onLoadedMetadata={() => { if (audioRef.current) setAudioDur(String(Math.floor(audioRef.current.duration))); }}
-        onTimeUpdate={() => { if (audioRef.current) setAudioProg((audioRef.current.currentTime / audioRef.current.duration) * 100); }}
       />
 
-
       <div style={{ display: 'flex', height: '100vh' }}>
+        {/* Sidebar */}
         <aside style={{
           width: 275,
           background: 'var(--color-surface-container-low)',
@@ -362,29 +446,17 @@ export default function ChatPage() {
           position: 'relative',
         }}>
           <div style={{
-            position: 'absolute',
-            right: 0,
-            top: '5%',
-            bottom: '5%',
-            width: '1px',
-            background: 'rgba(255,255,255,0.08)',
+            position: 'absolute', right: 0, top: '5%', bottom: '5%',
+            width: '1px', background: 'rgba(255,255,255,0.08)',
           }} />
-         <div style={{ marginLeft: '0.5rem', display: 'flex' }}>
+          <div style={{ marginLeft: '0.5rem', display: 'flex' }}>
             <OmniWordmark logoSize={60} />
           </div>
           <h2 style={{ fontWeight: 700 }}> Hello, User </h2>
-
           <div>
             <div className="label-sm">Recent Chats</div>
-            {
-              // Recent chat section
-            }
-            
           </div>
-
-
-        <div style={{ marginTop: 'auto' }}>
-          <div /> 
+          <div style={{ marginTop: 'auto' }}>
             <Link
               href="/"
               className="label-sm"
@@ -396,135 +468,185 @@ export default function ChatPage() {
                 textDecoration: 'none',
               }}
             >
-            ← Return to Dashboard
-          </Link>
+              ← Return to Dashboard
+            </Link>
           </div>
         </aside>
 
-        {/* Main Content Area */}
-        <main className="w-full min-h-screen bg-[#131313] flex flex-col items-center justify-center relative px-8 py-12">
-          {/* Subtle Ambient Lighting */}
-          <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        {/* Main content */}
+        <main style={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          height: '100vh',
+          background: '#131313',
+          position: 'relative',
+          overflow: 'hidden',
+        }}>
+          {/* Background */}
+          <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden' }}>
             <NeuralCanvas opacity={0.15} nodeCount={24} />
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-cyan-900/5 rounded-full blur-[120px]"></div>
           </div>
 
-          <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }} className="w-full max-w-[800px] flex flex-col gap-5 relative z-10">
-                {/* Centered Logo with Golden Glow */}
-              <div className="mb-40 flex flex-col items-center gap-3 relative">
-                {/* Golden Glow Background */}
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <div className="w-[500px] h-[300px] bg-amber-400/10 rounded-full blur-[80px] -z-10"></div>
+          {/* ─── STATE 1: Before first message — centered hero + input ─── */}
+          {!hasSubmitted && (
+            <div style={{
+              flex: 1, display: 'flex', flexDirection: 'column',
+              alignItems: 'center', justifyContent: 'center',
+              position: 'relative', zIndex: 10, padding: '0 2rem',
+            }}>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.7 }}
+                style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '3rem' }}
+              >
+                <div style={{ position: 'relative' }}>
+                  <div style={{
+                    position: 'absolute', inset: 0,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    pointerEvents: 'none',
+                  }}>
+                    <div style={{
+                      width: 500, height: 300,
+                      background: 'rgba(251,191,36,0.1)', borderRadius: '50%',
+                      filter: 'blur(80px)', zIndex: -1,
+                    }} />
+                  </div>
+                  <h1 style={{
+                    color: 'white', fontWeight: 800, fontSize: '4.5rem',
+                    letterSpacing: '-0.02em', marginBottom: '0.75rem', position: 'relative',
+                  }}>
+                    OMNIVERSAL
+                  </h1>
                 </div>
-                
-                <h1 className="text-white font-headline font-extrabold text-7xl tracking-tight mb-20 relative">
-                  OMNIVERSAL
-                </h1>
-                <p className="font-['Geist_Mono'] mt-16 text-[11px] text-cyan-400 tracking-[0.4em] uppercase opacity-60">Cognitive Processing Engine · Session 4F2A · OmniV-4.2 Ready</p>
-              </div>
+                <p style={{
+                  fontFamily: 'var(--font-mono)', fontSize: '11px',
+                  color: 'rgb(34,211,238)', letterSpacing: '0.4em',
+                  textTransform: 'uppercase', opacity: 0.6,
+                }}>
+                  Cognitive Processing Engine · OmniV-4.2 Ready
+                </p>
+              </motion.div>
 
-              {/* Form Section */}
-              <form onSubmit={handleSubmit} className="w-full relative mx-2">
-                    {/* Input + Button */}
-                    <div className="flex items-end gap-3 justify-center">
-                      <div className="flex-1 relative">
-                        <textarea
-                          ref={textareaRef}
-                          value={prompt}
-                          onChange={(e) => {
-                            setPrompt(e.target.value);
-                            handleInput(e);
-                            e.target.style.height = 'auto';
-                            e.target.style.height = Math.min(e.target.scrollHeight, 200) + 'px';
-                          }}
-                          rows={1}
-                          className="w-full bg-[#201f1f] rounded-3xl px-6 py-3 pr-16 text-on-surface placeholder:text-neutral-600 font-headline text-sm resize-none overflow-hidden transition-colors focus:outline-none focus:bg-[#2a2929]"
-                          placeholder="Enter your query..."
-                          style={{
-                            minHeight: '44px',
-                            maxHeight: '200px',
-                            overflowY: 'auto',
-                            paddingTop: '12px',
-                            paddingLeft: '20px',
-                            paddingRight: '20px',
-                            paddingBottom: '12px'
-                          }}
-                        />
-                        <span className="absolute bottom-2 right-4 text-[8px] text-neutral-600 tabular-nums">
-                          {prompt.length}/4096
-                        </span>
-                      </div>
-                      <button
-                        type="submit"
-                        disabled={!prompt.trim() || isLoading}
-                        className="h-[55px] w-[54px] flex items-center justify-center bg-cyan-400 text-[#001f24] rounded-2xl disabled:opacity-50 disabled:cursor-not-allowed hover:bg-cyan-300 active:scale-95 transition-all"
-                        aria-label="Send message"
+              <div style={{ width: '100%', maxWidth: 720 }}>
+                {renderInputBar()}
+              </div>
+            </div>
+          )}
+
+          {/* ─── STATE 2: After first message — chat area + bottom input ─── */}
+          {hasSubmitted && (
+            <>
+              {/* Scrollable messages */}
+              <div style={{
+                flex: 1, overflowY: 'auto', padding: '2rem',
+                display: 'flex', flexDirection: 'column', alignItems: 'center',
+                position: 'relative', zIndex: 10,
+              }}>
+                <div style={{ width: '100%', maxWidth: 720 }}>
+                  <AnimatePresence>
+                    {isLoading && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.3 }}
+                        style={{ display: 'flex', justifyContent: 'center', padding: '2rem 0' }}
                       >
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                        </svg>
-                      </button>
-                    </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.5rem 1rem' }}>
+                          <Loader2
+                            size={16}
+                            className="ultra-slow-spin"
+                            style={{ color: 'var(--color-primary)' }}
+                          />
+                          <span style={{
+                            fontFamily: 'var(--font-mono)',
+                            fontSize: '0.75rem',
+                            fontWeight: 500,
+                            color: 'rgb(163,163,163)',
+                            letterSpacing: '0.05em',
+                          }}>
+                            Generating response
+                          </span>
+                          <span style={{ display: 'flex', gap: '0.25rem' }}>
+                            <span className="ultra-slow-pulse-1" style={{ width: 6, height: 6, borderRadius: '50%', background: 'rgb(82,82,82)' }} />
+                            <span className="ultra-slow-pulse-2" style={{ width: 6, height: 6, borderRadius: '50%', background: 'rgb(82,82,82)' }} />
+                            <span className="ultra-slow-pulse-3" style={{ width: 6, height: 6, borderRadius: '50%', background: 'rgb(82,82,82)' }} />
+                          </span>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
 
-              {/* Status Indicator (centered + smooth) */}
-              <div className="mt-6 flex justify-center">
-                {isLoading ? (
-                  <CircleLoader />
-                ) : (
-                  <div
-                    className={`px-4 py-2 rounded-full font-['Geist_Mono'] text-[10px] font-bold tracking-widest uppercase flex items-center gap-2 transition-all duration-300 ${
-                      roastData
-                        ? 'bg-green-400/20 text-green-400'
-                        : 'bg-white/5 text-neutral-500'
-                    }`}
-                  >
-                  </div>
-                )}
+                  <AnimatePresence>
+                    {error && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0 }}
+                        style={{
+                          padding: '1rem', background: 'rgba(127,29,29,0.2)',
+                          border: '1px solid rgba(239,68,68,0.3)', borderRadius: '0.5rem',
+                          display: 'flex', alignItems: 'center', gap: '0.75rem',
+                          color: 'rgb(252,165,165)', marginBottom: '1rem',
+                        }}
+                      >
+                        {error}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  <AnimatePresence>
+                    {roastData && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                      >
+                        <div style={{
+                          background: '#201f1f',
+                          border: '1px solid rgba(255,255,255,0.05)',
+                          borderRadius: '1rem', padding: '1rem',
+                        }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                            <span style={{
+                              fontSize: '10px', color: 'rgb(34,211,238)',
+                              fontFamily: 'var(--font-mono)', textTransform: 'uppercase',
+                              letterSpacing: '0.15em',
+                            }}>Response</span>
+                            <span style={{ fontSize: '10px', color: 'rgb(82,82,82)' }}>•</span>
+                            <span style={{
+                              fontSize: '10px', color: 'rgb(82,82,82)',
+                              fontFamily: 'var(--font-mono)',
+                            }}>{roastData.persona || 'OmniV-4.2'}</span>
+                          </div>
+                          <div style={{
+                            fontSize: '0.875rem', color: 'rgb(212,212,212)',
+                            lineHeight: 1.7, padding: '0.5rem',
+                            fontFamily: 'var(--font-sans)',
+                          }}>
+                            <StreamingText text={roastData.output} />
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                  <div ref={messagesEndRef} />
+                </div>
               </div>
-            </form>
 
-            {/* Error Message */}
-            <AnimatePresence>
-              {error && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0 }}
-                  className="mt-8 p-4 bg-red-900/20 border border-red-500/30 rounded-lg flex items-center gap-3 text-red-300"
-                >
-                  <span className="material-symbols-outlined text-sm">error</span>
-                  {error}
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* Response */}
-            <AnimatePresence>
-              {roastData && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="mt-8"
-                >
-                  <div className="bg-[#201f1f] border border-white/5 rounded-2xl p-6" 
-                    style={{
-                      padding: '14px'
-                    }}>
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-[10px] text-cyan-400 font-['Geist_Mono'] uppercase tracking-widest">Response</span>
-                      <span className="text-[10px] text-neutral-600">•</span>
-                      <span className="text-[10px] text-neutral-600 font-['Geist_Mono']">OmniV-4.2</span>
-                    </div>
-                    <div className="text-sm text-neutral-300 leading-relaxed p-2" style={{ fontFamily: 'var(--font-sans)' }}>
-                      <StreamingText text={roastData.output} />
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
+              {/* Bottom-pinned input */}
+              <div style={{
+                padding: '1rem 2rem 1.5rem', position: 'relative', zIndex: 10,
+                display: 'flex', justifyContent: 'center',
+              }}>
+                <div style={{ width: '100%', maxWidth: 720 }}>
+                  {renderInputBar()}
+                </div>
+              </div>
+            </>
+          )}
         </main>
-
       </div>
 
       <style>{`
@@ -533,114 +655,5 @@ export default function ChatPage() {
         @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
       `}</style>
     </div>
-  );
-}
-
-function MetricCard({ label, value, bar, icon }: { label: string; value: string; bar: number; icon: React.ReactNode }) {
-  return (
-    <div style={{
-      background: 'var(--color-surface-container-high)',
-      borderRadius: 'var(--radius-DEFAULT)',
-      padding: '0.875rem 1rem',
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-          {icon}
-          <span className="label-sm">{label}</span>
-        </div>
-        <span style={{ fontSize: 'var(--text-label-md)', fontWeight: 700, color: 'var(--color-on-surface)', fontVariantNumeric: 'tabular-nums' }}>{value}</span>
-      </div>
-      <div style={{ height: 2, background: 'var(--color-surface-highest)', borderRadius: 1 }}>
-        <motion.div
-          animate={{ width: `${bar}%` }}
-          transition={{ duration: 0.6, ease: 'easeOut' }}
-          style={{ height: '100%', background: 'linear-gradient(90deg, var(--color-primary), var(--color-primary-container))', borderRadius: 1 }}
-        />
-      </div>
-    </div>
-  );
-}
-
-function LabTextarea({ value, onChange }: { value: string; onChange: (v: string) => void }) {
-  const [focused, setFocused] = useState(false);
-  return (
-    <div style={{ position: 'relative', paddingBottom: 2 }}>
-      <textarea
-        value={value}
-        onChange={e => onChange(e.target.value)}
-        onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
-        placeholder="e.g., Write a Python script to merge two sorted arrays, or explain quantum entanglement to a five-year-old..."
-        rows={5}
-        style={{
-          width: '100%',
-          background: 'transparent',
-          border: 'none',
-          borderBottom: focused
-            ? '2px solid var(--color-primary)'
-            : '2px solid var(--color-outline-variant)',
-          borderRadius: 0,
-          color: 'var(--color-on-surface)',
-          fontSize: 'var(--text-body-lg)',
-          lineHeight: 1.6,
-          padding: '0.75rem 0',
-          resize: 'vertical',
-          outline: 'none',
-          fontFamily: 'inherit',
-          transition: 'border-color 200ms ease-out',
-        }}
-      />
-    </div>
-  );
-}
-
-function PrimaryButton({ children, onClick, type = 'button', disabled }: {
-  children: React.ReactNode; onClick?: () => void; type?: 'button' | 'submit'; disabled?: boolean;
-}) {
-  return (
-    <button type={type} onClick={onClick} disabled={disabled}
-      style={{
-        background: disabled
-          ? 'var(--color-surface-container-high)'
-          : 'linear-gradient(135deg, var(--color-primary), var(--color-primary-container))',
-        color: disabled ? 'var(--color-on-surface-variant)' : 'var(--color-on-primary)',
-        border: 'none', borderRadius: 'var(--radius-DEFAULT)',
-        padding: '0.65rem 1.5rem',
-        fontSize: 'var(--text-label-md)', fontWeight: 700, letterSpacing: '0.04em',
-        cursor: disabled ? 'not-allowed' : 'pointer',
-        display: 'flex', alignItems: 'center', gap: 7,
-        transition: 'opacity 200ms ease-out',
-        fontFamily: 'inherit',
-      }}
-      onMouseEnter={e => { if (!disabled) e.currentTarget.style.opacity = '0.85'; }}
-      onMouseLeave={e => { e.currentTarget.style.opacity = '1'; }}
-    >
-      {children}
-    </button>
-  );
-}
-
-function SecondaryButton({ children, onClick, type = 'button' }: {
-  children: React.ReactNode; onClick?: () => void; type?: 'button' | 'submit';
-}) {
-  return (
-    <button type={type} onClick={onClick}
-      style={{
-        background: 'transparent',
-        color: 'var(--color-primary)',
-        border: '1px solid rgba(118,117,117,0.2)',
-        borderRadius: 'var(--radius-DEFAULT)',
-        padding: '0.65rem 1.5rem',
-        fontSize: 'var(--text-label-md)', fontWeight: 700, letterSpacing: '0.04em',
-        cursor: 'pointer',
-        display: 'flex', alignItems: 'center', gap: 7,
-        transition: 'border-color 200ms ease-out',
-        fontFamily: 'inherit',
-      }}
-      onMouseEnter={e => (e.currentTarget.style.borderColor = 'rgba(0,218,243,0.33)')}
-      onMouseLeave={e => (e.currentTarget.style.borderColor = 'rgba(118,117,117,0.2)')}
-    >
-      {children}
-    </button>
   );
 }

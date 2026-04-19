@@ -57,7 +57,7 @@ Return only raw JSON:
   "roast_text": "Same as output - this is what gets spoken aloud."
 }
 `,
-  voiceId: '21m00Tcm4TlvDq8ikWAM',
+  voiceId: 'UlQzP061AqptrSLuYnFf',
   temperature: 0.9,
 };
 

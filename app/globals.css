@@ -261,3 +261,44 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ─── Ultra Slow Loading Animations ─────────────────────────────────────────────*/
+@keyframes ultra-slow-rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes ultra-slow-blink {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+
+.ultra-slow-spin {
+  animation-name: ultra-slow-rotate !important;
+  animation-duration: 1200s !important;
+  animation-timing-function: linear !important;
+  animation-iteration-count: infinite !important;
+}
+
+.ultra-slow-pulse-1 {
+  animation-name: ultra-slow-blink !important;
+  animation-duration: 800s !important;
+  animation-timing-function: ease-in-out !important;
+  animation-iteration-count: infinite !important;
+}
+
+.ultra-slow-pulse-2 {
+  animation-name: ultra-slow-blink !important;
+  animation-duration: 800s !important;
+  animation-timing-function: ease-in-out !important;
+  animation-iteration-count: infinite !important;
+  animation-delay: 266s !important;
+}
+
+.ultra-slow-pulse-3 {
+  animation-name: ultra-slow-blink !important;
+  animation-duration: 800s !important;
+  animation-timing-function: ease-in-out !important;
+  animation-iteration-count: infinite !important;
+  animation-delay: 532s !important;
+}

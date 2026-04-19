@@ -217,7 +217,7 @@ export default function Home() {
         <OmniWordmark logoSize={38} />
 
         <nav style={{ display: 'flex', gap: '2rem' }}>
-          {[['Features', '/features'], ['Pricing', '#']].map(([label, href]) => (
+          {[['Features', '/features'], ['Pricing', '/pricing']].map(([label, href]) => (
             <a key={label} href={href} style={{
               fontSize: 'var(--text-body-md)', color: 'var(--color-on-surface-variant)',
               textDecoration: 'none', letterSpacing: '0.04em', transition: 'color 200ms ease-out',

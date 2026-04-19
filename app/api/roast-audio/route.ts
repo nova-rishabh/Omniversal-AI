@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ElevenLabsClient } from '@elevenlabs/elevenlabs-js';
 
-const ELEVENLABS_VOICE_ID = process.env.ELEVENLABS_VOICE_ID || '21m00Tcm4TlvDq8ikWAM';
+const DEFAULT_VOICE_ID = '21m00Tcm4TlvDq8ikWAM';
 
 export async function POST(req: NextRequest) {
   try {
-    const { text } = await req.json();
+    const { text, voiceId } = await req.json();
+    const resolvedVoiceId = voiceId || DEFAULT_VOICE_ID;
 
     if (!text) {
       return NextResponse.json({ error: 'Text is required' }, { status: 400 });
@@ -19,7 +20,7 @@ export async function POST(req: NextRequest) {
       apiKey: process.env.ELEVENLABS_API_KEY,
     });
 
-    const audioStream = await elevenlabs.textToSpeech.convert(ELEVENLABS_VOICE_ID, {
+    const audioStream = await elevenlabs.textToSpeech.convert(resolvedVoiceId, {
       text: text,
       modelId: 'eleven_flash_v2_5',
       outputFormat: 'mp3_22050_32',
