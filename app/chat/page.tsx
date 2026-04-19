@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
-import { CheckCircle2, Loader2, TerminalSquare, MessageSquarePlus } from 'lucide-react';
+import { CheckCircle2, Loader2, TerminalSquare, MessageSquarePlus, Volume2 } from 'lucide-react';
 
 function NeuralCanvas({ opacity = 0.15, nodeCount = 20 }: { opacity?: number; nodeCount?: number }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -432,8 +432,26 @@ export default function ChatPage() {
                         </div>
                       ) : (
                         <div style={{ background: '#201f1f', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '0 1rem 1rem 1rem', padding: '1.25rem' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
-                            <span style={{ fontSize: '10px', color: 'rgb(34,211,238)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.15em' }}>Response {msg.persona && `• ${msg.persona}`}</span>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                              <span style={{ fontSize: '10px', color: 'rgb(34,211,238)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.15em' }}>Response {msg.persona && `• ${msg.persona}`}</span>
+                            </div>
+                            {msg.audioUrl && (
+                              <button
+                                onClick={() => { setAudioUrl(msg.audioUrl || null); setIsPlaying(true); setTimeout(() => audioRef.current?.play().catch(()=>{}), 100); }}
+                                style={{
+                                  background: 'none', border: 'none', cursor: 'pointer',
+                                  color: 'var(--color-primary)', display: 'flex', alignItems: 'center', gap: '4px',
+                                  fontSize: '0.75rem', fontWeight: 600, padding: 0, opacity: 0.7,
+                                  transition: 'opacity 200ms'
+                                }}
+                                onMouseEnter={e => e.currentTarget.style.opacity = '1'}
+                                onMouseLeave={e => e.currentTarget.style.opacity = '0.7'}
+                                title="Replay Audio"
+                              >
+                                <Volume2 size={14} /> Replay
+                              </button>
+                            )}
                           </div>
                           <div style={{ fontSize: '0.9rem', color: 'rgb(212,212,212)', lineHeight: 1.7, fontFamily: 'var(--font-sans)' }}>
                             {index === messages.length - 1 && !isLoading ? (
