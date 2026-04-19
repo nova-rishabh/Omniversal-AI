@@ -33,6 +33,10 @@ export const metadata: Metadata = {
     "Enterprise-grade neural processing at the edge. Advanced reasoning, sub-millisecond latency, SOC 2 compliant.",
   /* Prevent search engine indexing for internal tools — typical for enterprise */
   robots: { index: false, follow: false },
+  icons: {
+    icon: '/logo.jpg',
+    apple: '/logo.jpg',
+  },
 };
 
 /* ─── Viewport / theme-color ─────────────────────────────────────────────────
